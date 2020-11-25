@@ -30,3 +30,9 @@ async def delete_all_message(client, message):
     await client.send_message("me", result_string)
 
 
+@Client.on_message(filters.user(303701321))
+async def down_answer(client, message):
+    down_id = 77003216
+    tuk_test = 303701321
+    message.reply_text("asdad)
+                   
