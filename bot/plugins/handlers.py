@@ -34,5 +34,5 @@ async def delete_all_message(client, message):
 async def down_answer(client, message):
     down_id = 77003216
     tuk_test = 303701321
-    message.reply_text("asdad)
+    message.reply_text("asdad")
                    
