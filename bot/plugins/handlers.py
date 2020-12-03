@@ -1,5 +1,6 @@
 import datetime
 
+from textblob import TextBlob
 from pyrogram import filters, Client
 
 
@@ -29,6 +30,24 @@ async def delete_all_message(client, message):
 
     await client.send_message("me", result_string)
 
+
+@Client.on_message(filters.command(['en', 'ru']) & filters.me)
+async def translate_message(client, message):
+    if len(message['command']) > 1:
+
+        lang = message['command'][0]
+
+        to_translate = " ".join(message['command'][1:])
+
+        translated = "translating_error"
+        try:
+            translator = TextBlob(to_translate)
+            translated = translator.translate(to=lang)
+        except:
+            pass
+
+        await client.edit_message_text(
+            message['chat']['id'], message['message_id'], translated)
 
 
                    
