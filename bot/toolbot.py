@@ -8,9 +8,6 @@ class ToolBot(Client):
 
     def __init__(self):
 
-        if os.path.exists('local_config.py'):
-            print("123")
-
         try:
             from local_config import LocalConfig as bot_config
         except:
