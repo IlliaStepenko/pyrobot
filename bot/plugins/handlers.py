@@ -1,7 +1,10 @@
 import datetime
 
+from pyrogram.raw.functions.messages import Search
+from pyrogram.raw.types import InputMessagesFilterEmpty, InputPeerSelf
 from textblob import TextBlob
 from pyrogram import filters, Client
+
 
 
 @Client.on_message(filters.command('check') & filters.me & filters.chat("me"))
@@ -18,13 +21,28 @@ async def det_tukan(client, message):
 
 @Client.on_message(filters.command('dall') & filters.me & ~filters.chat("me"))
 async def delete_all_message(client, message):
+    LIMIT = 50
+
+    offset = 0
+
+    has_messages = True
+
     chat_id = message['chat']['id']
 
     await message.delete()
 
-    chat_messages = [message['message_id'] async for message in client.search_messages(chat_id=chat_id, from_user="me") ]
+    while has_messages:
 
-    await client.delete_messages(chat_id=chat_id, message_ids=chat_messages)
+        chat_messages = []
+
+        async for message in client.search_messages(chat_id=chat_id, from_user='me', offset=offset, limit=LIMIT):
+            chat_messages.append(message['message_id'])
+
+        await client.delete_messages(chat_id=chat_id, message_ids=chat_messages)
+
+        offset += 50
+
+        has_messages = bool(chat_messages)
 
     result_string = f"Удаление ВСЕХ сообщений из чата {chat_id} в {datetime.datetime.now()}"
 
@@ -50,4 +68,3 @@ async def translate_message(client, message):
             message['chat']['id'], message['message_id'], translated)
 
 
-                   

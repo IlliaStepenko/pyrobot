@@ -1,19 +1,26 @@
+import os
+
 from pyrogram import Client, filters
 import datetime
-from config import Config
-
-
-
-config = Config
 
 
 class ToolBot(Client):
 
     def __init__(self):
+
+        if os.path.exists('local_config.py'):
+            print("123")
+
+        try:
+            from local_config import LocalConfig as bot_config
+        except:
+            from config import Config as bot_config
+
+
         super().__init__(
-            session_name=config.SESSION,
-            api_id=config.API_ID,
-            api_hash=config.API_HASH,
+            session_name=bot_config.SESSION,
+            api_id=bot_config.API_ID,
+            api_hash=bot_config.API_HASH,
             plugins=dict(
                 root="plugins",
                 include=['handlers',]
