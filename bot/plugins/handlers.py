@@ -9,7 +9,7 @@ OUR_CHAT_ID = -1001140635421
 
 
 async def filter_channel(_, __, query):
-    return query.chat.id == INSIDER_ID
+    return query.chat.id == INSIDER_ID and getattr(query, 'edit_date', None) is None
 
 
 @Client.on_message(filters.command('check') & filters.me & filters.chat("me"))
@@ -78,8 +78,8 @@ async def on_new_post(client, message):
     await client.forward_messages(OUR_CHAT_ID, INSIDER_ID, message['message_id'])
 
 
-@Client.on_message(filters.command('lastn') & filters.me)
+@Client.on_message(filters.command('lastn') & filters.me )
 async def get_new_post(client, message):
-    message = await client.get_history(INSIDER_ID, limit=1)
-    await client.forward_messages(OUR_CHAT_ID, INSIDER_ID, message[0]['message_id'])
+    messages = await client.get_history(INSIDER_ID, limit=1)
+    await client.forward_messages("me", INSIDER_ID, messages[0]['message_id'])
 
