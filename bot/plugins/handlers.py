@@ -3,9 +3,7 @@ import datetime
 from textblob import TextBlob
 from pyrogram import filters, Client
 
-
-INSIDER_ID = -1001352726486
-OUR_CHAT_ID = -1001140635421
+from .chatsids import SOURCE_CHATS, TARGET_CHATS, INSIDER_ID
 
 
 async def filter_channel(_, __, query):
@@ -13,7 +11,7 @@ async def filter_channel(_, __, query):
     hasnt_button = getattr(query, 'reply_markup', None) is None
     isnt_edited = getattr(query, 'edit_date', None) is None
 
-    return query.chat.id == INSIDER_ID and hasnt_button and isnt_edited
+    return query.chat.id == SOURCE_CHATS and hasnt_button and isnt_edited
 
 
 @Client.on_message(filters.command('check') & filters.me & filters.chat("me"))
@@ -79,11 +77,12 @@ async def translate_message(client, message):
 
 @Client.on_message(filters.channel & filters.create(filter_channel))
 async def on_new_post(client, message):
-    await client.forward_messages(OUR_CHAT_ID, INSIDER_ID, message['message_id'])
+    async for chat_id in TARGET_CHATS:
+        await client.forward_messages(chat_id, INSIDER_ID, message['message_id'])
 
 
 @Client.on_message(filters.command('lastn') & filters.me)
 async def get_new_post(client, message):
     messages = await client.get_history(INSIDER_ID, limit=1)
-    await client.forward_messages("me", INSIDER_ID, messages[0]['message_id'])
-
+    for chat_id in TARGET_CHATS:
+        await client.forward_messages(chat_id, INSIDER_ID, messages[0]['message_id'])
