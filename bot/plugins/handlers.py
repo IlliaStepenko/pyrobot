@@ -12,17 +12,23 @@ async def filter_channel(_, __, query):
 
 async def check_spam(message):
 
-    entities = message.get('entities', [])
+    if getattr(message, 'text', "").find('t.me/') != -1:
+        if getattr(message, 'text', "").find('https://t.me/joinchat/AAAAAFCg99bpFf62A_f3yA') != -1:
+            return False
+        return True
+
+    entities = getattr(message,'entities', [])
     if not entities:
-        entities = message.get('caption_entities', [])
+        entities = getattr(message, 'caption_entities', [])
 
     if entities:
         for item in entities:
-            url = item.get('url', None)
+            url = getattr(item, 'url', None)
             if url == 'https://t.me/joinchat/AAAAAFCg99bpFf62A_f3yA':
                 continue
-            elif url and url.find('t.me/joinchat/'):
+            elif url and url.find('t.me/') != -1:
                 return True
+        return False
     else:
         return False
 
@@ -35,7 +41,7 @@ def recalculate_target_source(client, message):
 
 @Client.on_message(filters.channel & filters.create(filter_channel))
 async def on_new_post(client, message):
-    if not check_spam(message):
+    if not await check_spam(message):
         for chat_id in client.target_chats:
             await client.copy_message(chat_id, message['chat']['id'], message['message_id'])
 
@@ -43,6 +49,6 @@ async def on_new_post(client, message):
 @Client.on_message(filters.command('lastn') & filters.me)
 async def get_new_post(client, message):
     messages = await client.get_history(-1001495650439, limit=2)
-    pass
+    print(messages[0])
 
 
