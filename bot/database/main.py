@@ -22,7 +22,6 @@ class DataSource:
         self.cursor.execute('''SELECT * FROM public."SourceChats";''')
         return self.cursor.fetchall()
 
-
     def close(self):
         self.conn.close()
         self.cursor.close()

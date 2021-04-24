@@ -20,8 +20,6 @@ class ToolBot(Client):
         self.source_chats = [chat[1] for chat in self.data_source.get_source_chats() if chat[3]]
         self.target_chats = [chat[1] for chat in self.data_source.get_target_chats() if chat[3]]
 
-
-
         super().__init__(
             session_name=bot_config.SESSION,
             api_id=bot_config.API_ID,
@@ -32,4 +30,4 @@ class ToolBot(Client):
             )
         )
 
-        self.data_source.close()
+
