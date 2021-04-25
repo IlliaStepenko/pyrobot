@@ -12,10 +12,12 @@ async def filter_channel(_, __, query):
 
 async def check_spam(message):
 
-    if getattr(message, 'text', "").find('t.me/') != -1:
-        if getattr(message, 'text', "").find('https://t.me/joinchat/AAAAAFCg99bpFf62A_f3yA') != -1:
-            return False
-        return True
+    message_text = getattr(message, 'text')
+    if message_text:
+        if message_text.find('t.me/') != -1:
+            if message_text.find('https://t.me/joinchat/AAAAAFCg99bpFf62A_f3yA') != -1:
+                return False
+            return True
 
     entities = getattr(message,'entities', [])
     if not entities:
