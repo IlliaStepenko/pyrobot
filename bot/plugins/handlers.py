@@ -19,7 +19,14 @@ async def check_spam(message):
                 return False
             return True
 
-    entities = getattr(message,'entities', [])
+    caption = getattr(message, 'caption', None)
+    if caption:
+        if caption.find('t.me/') != -1:
+            if message_text.find('https://t.me/joinchat/AAAAAFCg99bpFf62A_f3yA') != -1:
+                return False
+            return True
+
+    entities = getattr(message, 'entities', [])
     if not entities:
         entities = getattr(message, 'caption_entities', [])
 
