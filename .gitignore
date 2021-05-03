@@ -1,3 +1,5 @@
 .idea
 bot/local_config.py
+bot/database/local_config.
+venv
 bot/database/local_config.py
