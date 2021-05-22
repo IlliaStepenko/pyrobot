@@ -58,7 +58,7 @@ async def check_spam(message):
             url = getattr(item, 'url', None)
             if url == 'https://t.me/joinchat/AAAAAFCg99bpFf62A_f3yA':
                 continue
-            elif url and url.find('t.me/') != -1 or url.find('@') != -1:
+            elif url and (url.find('t.me/') != -1 or url.find('@') != -1):
 
                 if url.find(chat_id) != -1 or url.find(chat_username) != -1:
                     return False
