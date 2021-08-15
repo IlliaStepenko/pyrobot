@@ -6,8 +6,8 @@ class DataSource:
 
     def __init__(self):
         try:
-            from .local_config import DBConfig
-            self.conn = psycopg2.connect(**DBConfig.as_conn_param_dict())
+            from .local_config import DBConfig as Config
+            self.conn = psycopg2.connect(**Config.as_conn_param_dict())
         except Exception as e:
             database_url = os.environ['DATABASE_URL']
             self.conn = psycopg2.connect(database_url, sslmode='require')

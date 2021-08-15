@@ -1,6 +1,12 @@
+import os
+import sys
 from pyrogram import Client
 
 from bot.local_config import LocalConfig
+
+
+if 'reload' in sys.argv:
+        os.remove('my_account.session')
 
 
 with Client("my_account", LocalConfig.API_ID, LocalConfig.API_HASH) as app:

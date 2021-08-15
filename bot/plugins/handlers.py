@@ -11,6 +11,21 @@ media_types = {
     "video": InputMediaVideo
 }
 
+duplicate_cache = dict()
+
+
+async def check_duplicate(chat_id, message):
+    message_text = getattr(message, 'text')
+    from_cache = duplicate_cache.get(chat_id, None)
+    if from_cache and from_cache == message_text:
+        return True
+    else:
+        if from_cache is None:
+            duplicate_cache.update({chat_id: message_text})
+        else:
+            duplicate_cache[chat_id] = message_text
+        return False
+
 
 async def filter_channel(_, __, query):
     hasnt_button = getattr(query, 'reply_markup', None) is None
@@ -82,6 +97,9 @@ async def on_new_post(client, message):
     chat_id = message['chat']['id']
     media_group_id = getattr(message, 'media_group_id', None)
 
+    if await check_duplicate(chat_id, message):
+        return None
+
     if media_group_id:
         if media_group_id != client.last_media_group:
             client.last_media_group = media_group_id
@@ -112,6 +130,6 @@ async def on_new_post(client, message):
 @Client.on_message(filters.command('lastn') & filters.me)
 async def get_new_post(client, message):
     messages = await client.get_history("insiderUKR", limit=2)
-    print(messages[1])
+
 
 
