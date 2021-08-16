@@ -113,7 +113,10 @@ async def on_new_post(client, message):
 
                     if caption and await check_spam(message):
                         return None
-
+                    
+                    if caption and await check_duplicate(chat_id, caption):
+                        return None
+                    
                     if media_obj:
                         media_group_to_send.append(
                             media_class(media_obj['file_id'], caption=caption)
