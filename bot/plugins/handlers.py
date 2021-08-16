@@ -1,7 +1,6 @@
-import datetime
+from collections import Iterable
 
 from pyrogram.types import InputMediaDocument, InputMediaAudio, InputMediaPhoto, InputMediaVideo
-from textblob import TextBlob
 from pyrogram import filters, Client
 
 media_types = {
@@ -14,17 +13,35 @@ media_types = {
 duplicate_cache = dict()
 
 
-async def check_duplicate(chat_id, message):
-    message_text = getattr(message, 'text')
-    from_cache = duplicate_cache.get(chat_id, None)
-    if from_cache and from_cache == message_text:
+async def check_duplicate(chat_id, items):
+
+    if not issubclass(items.__class__, Iterable):
+        message_items = set()
+        message_items.add(items)
+    else:
+        message_items = items
+
+    from_cache = duplicate_cache.get(chat_id, set())
+
+    if from_cache and message_items == from_cache:
         return True
     else:
-        if from_cache is None:
-            duplicate_cache.update({chat_id: message_text})
-        else:
-            duplicate_cache[chat_id] = message_text
+        duplicate_cache.update({chat_id: message_items})
         return False
+
+
+
+# async def check_duplicate(chat_id, message):
+#     message_text = getattr(message, 'text')
+#     from_cache = duplicate_cache.get(chat_id, None)
+#     if from_cache and from_cache == message_text:
+#         return True
+#     else:
+#         if from_cache is None:
+#             duplicate_cache.update({chat_id: message_text})
+#         else:
+#             duplicate_cache[chat_id] = message_text
+#         return False
 
 
 async def filter_channel(_, __, query):
@@ -96,9 +113,8 @@ async def on_new_post(client, message):
 
     chat_id = message['chat']['id']
     media_group_id = getattr(message, 'media_group_id', None)
-
-    if await check_duplicate(chat_id, message):
-        return None
+    message_items = set()
+    message_items.add(getattr(message, 'text', None))
 
     if media_group_id:
         if media_group_id != client.last_media_group:
@@ -107,30 +123,35 @@ async def on_new_post(client, message):
             media_group_messages = await client.get_media_group(chat_id, message['message_id'])
 
             for message in media_group_messages:
-                
-                if caption and await check_duplicate(chat_id, message):
-                        return None
-                    
+
                 for item, media_class in media_types.items():
                     media_obj = getattr(message, item, None)
                     caption = getattr(message, 'caption', None)
+                    message_items.add(caption)
 
                     if caption and await check_spam(message):
                         return None
-                    
-                    
-                    
+
                     if media_obj:
                         media_group_to_send.append(
                             media_class(media_obj['file_id'], caption=caption)
                         )
 
+            if await check_duplicate(chat_id, message_items):
+                return None
+
             for chat_id in client.target_chats:
                 await client.send_media_group(chat_id, media_group_to_send)
     else:
-        if not await check_spam(message):
-            for chat_id in client.target_chats:
-                await client.copy_message(chat_id, message['chat']['id'], message['message_id'])
+
+        if await check_spam(message):
+            return None
+
+        if await check_duplicate(chat_id, message_items):
+            return None
+
+        for chat_id in client.target_chats:
+            await client.copy_message(chat_id, message['chat']['id'], message['message_id'])
 
 
 @Client.on_message(filters.command('lastn') & filters.me)
