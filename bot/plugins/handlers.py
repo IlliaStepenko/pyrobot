@@ -107,6 +107,10 @@ async def on_new_post(client, message):
             media_group_messages = await client.get_media_group(chat_id, message['message_id'])
 
             for message in media_group_messages:
+                
+                if caption and await check_duplicate(chat_id, caption):
+                        return None
+                    
                 for item, media_class in media_types.items():
                     media_obj = getattr(message, item, None)
                     caption = getattr(message, 'caption', None)
@@ -114,8 +118,7 @@ async def on_new_post(client, message):
                     if caption and await check_spam(message):
                         return None
                     
-                    if caption and await check_duplicate(chat_id, caption):
-                        return None
+                    
                     
                     if media_obj:
                         media_group_to_send.append(
