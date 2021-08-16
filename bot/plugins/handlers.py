@@ -108,7 +108,7 @@ async def on_new_post(client, message):
 
             for message in media_group_messages:
                 
-                if caption and await check_duplicate(chat_id, caption):
+                if caption and await check_duplicate(chat_id, message):
                         return None
                     
                 for item, media_class in media_types.items():
