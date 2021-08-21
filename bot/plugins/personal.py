@@ -4,6 +4,8 @@ from textblob import TextBlob
 from pyrogram import filters, Client
 
 
+LANGUAGE_CODES = ['ru', 'en']
+
 @Client.on_message(filters.command('check') & filters.me & filters.chat("me"))
 async def check(client, message):
     await message.reply("Helloooooo")
@@ -46,14 +48,12 @@ async def delete_all_message(client, message):
     await client.send_message("me", result_string)
 
 
-@Client.on_message(filters.command(['en', 'ru']) & filters.me)
+@Client.on_message(filters.command(LANGUAGE_CODES) & filters.me)
 async def translate_message(client, message):
+    lang = message['command'][0]
     if len(message['command']) > 1:
 
-        lang = message['command'][0]
-
         to_translate = " ".join(message['command'][1:])
-
         translated = "translating_error"
         try:
             translator = TextBlob(to_translate)
@@ -63,3 +63,20 @@ async def translate_message(client, message):
 
         await client.edit_message_text(
             message['chat']['id'], message['message_id'], translated)
+
+    elif getattr(message, 'reply_to_message', None):
+        reply = message['reply_to_message']
+        message_text = getattr(reply, 'text', None)
+        if message_text:
+            translated = "translating_error"
+            try:
+                translator = TextBlob(message_text)
+                translated = translator.translate(to=lang)
+            except:
+                pass
+
+            await client.edit_message_text(
+                message['chat']['id'], message['message_id'], translated)
+
+
+
