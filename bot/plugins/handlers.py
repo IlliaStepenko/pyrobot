@@ -17,31 +17,19 @@ async def check_duplicate(chat_id, items):
 
     if not issubclass(items.__class__, Iterable):
         message_items = set()
-        message_items.add(items)
+        if items:
+            message_items.add(items)
     else:
         message_items = items
 
     from_cache = duplicate_cache.get(chat_id, set())
+    print(from_cache, items)
 
-    if from_cache and message_items == from_cache:
+    if message_items == from_cache:
         return True
     else:
         duplicate_cache.update({chat_id: message_items})
-        return False
-
-
-
-# async def check_duplicate(chat_id, message):
-#     message_text = getattr(message, 'text')
-#     from_cache = duplicate_cache.get(chat_id, None)
-#     if from_cache and from_cache == message_text:
-#         return True
-#     else:
-#         if from_cache is None:
-#             duplicate_cache.update({chat_id: message_text})
-#         else:
-#             duplicate_cache[chat_id] = message_text
-#         return False
+    return False
 
 
 async def filter_channel(_, __, query):
@@ -50,56 +38,9 @@ async def filter_channel(_, __, query):
     return query.chat.id in __.source_chats and hasnt_button and isnt_edited
 
 
-async def check_spam(message):
-
-    chat = getattr(message, 'chat')
-
-    if chat:
-        chat_id = str(getattr(chat, 'id', None))
-        chat_username = str(getattr(chat, 'username', None))
-
-    message_text = getattr(message, 'text')
-    if message_text:
-
-        if message_text.find('t.me/') != -1 or message_text.find('@') != -1:
-
-            if message_text.find(chat_id) != -1 or message_text.find(chat_username) != -1:
-               return False
-
-            if message_text.find('https://t.me/joinchat/AAAAAFCg99bpFf62A_f3yA') != -1:
-                return False
-            return True
-
-    caption = getattr(message, 'caption', None)
-    if caption:
-        if caption.find('t.me/') != -1 or caption.find('@') != -1:
-
-            if caption.find(chat_id) != -1 or caption.find(chat_username) != -1:
-               return False
-
-            if caption.find('https://t.me/joinchat/AAAAAFCg99bpFf62A_f3yA') != -1:
-                return False
-            return True
-
-    entities = getattr(message, 'entities', [])
-    if not entities:
-        entities = getattr(message, 'caption_entities', [])
-
-    if entities:
-        for item in entities:
-            url = getattr(item, 'url', None)
-            if url == 'https://t.me/joinchat/AAAAAFCg99bpFf62A_f3yA':
-                continue
-            elif url and (url.find('t.me/') != -1 or url.find('@') != -1):
-
-                if url.find(chat_id) != -1 or url.find(chat_username) != -1:
-                    return False
-
-                return True
-
-        return False
-    else:
-        return False
+async def check_spam(chat_id, chat_username, message_text):
+    if message_text.find('t.me/') != -1 or message_text.find('@') != -1:
+        return not(message_text.find(chat_id) != -1 or message_text.find(chat_username) != -1)
 
 
 @Client.on_message(filters.me & filters.command(['rects']))
@@ -110,8 +51,13 @@ def recalculate_target_source(client, message):
 
 @Client.on_message(filters.channel & filters.create(filter_channel))
 async def on_new_post(client, message):
+    chat = getattr(message, 'chat')
+    if chat:
+        chat_id = str(getattr(chat, 'id', None))
+        chat_username = str(getattr(chat, 'username', None))
+    else:
+        return None
 
-    chat_id = message['chat']['id']
     media_group_id = getattr(message, 'media_group_id', None)
     message_items = set()
     message_items.add(getattr(message, 'text', None))
@@ -129,14 +75,25 @@ async def on_new_post(client, message):
                     caption = getattr(message, 'caption', None)
                     message_items.add(caption)
 
-                    if caption and await check_spam(message):
+                    if caption and await check_spam(chat_id, chat_username, caption):
                         return None
+
+                    entities = getattr(message, 'entities', [])
+
+                    if not entities:
+                        entities = getattr(message, 'caption_entities', [])
+
+                    if entities:
+                        for entity in entities:
+                            url = getattr(entity, 'url', None)
+
+                            if url and await check_spam(chat_id, chat_username, url):
+                                return None
 
                     if media_obj:
                         media_group_to_send.append(
                             media_class(media_obj['file_id'], caption=caption)
                         )
-
             if await check_duplicate(chat_id, message_items):
                 return None
 
@@ -144,10 +101,11 @@ async def on_new_post(client, message):
                 await client.send_media_group(chat_id, media_group_to_send)
     else:
 
-        if await check_spam(message):
+        message_text = getattr(message, 'text', None)
+        if message_text and await check_spam( chat_id, chat_username, message_text):
             return None
 
-        if await check_duplicate(chat_id, message_items):
+        if await check_duplicate( chat_id, message_items):
             return None
 
         for chat_id in client.target_chats:
