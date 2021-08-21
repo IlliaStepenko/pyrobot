@@ -23,7 +23,7 @@ async def check_duplicate(chat_id, items):
         message_items = items
 
     from_cache = duplicate_cache.get(chat_id, set())
-    print(from_cache, items)
+
 
     if message_items == from_cache:
         return True
