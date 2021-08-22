@@ -3,7 +3,7 @@ import os
 from pyrogram import Client, filters
 import datetime
 
-from database.main import DataSource
+from database.main import DataSource, AsyncDataSource
 
 
 class ToolBot(Client):
@@ -15,11 +15,7 @@ class ToolBot(Client):
         except:
             from config import Config as bot_config
 
-        self.data_source = DataSource()
-
-        self.source_chats = [chat[1] for chat in self.data_source.get_source_chats() if chat[3]]
-        self.target_chats = [chat[1] for chat in self.data_source.get_target_chats() if chat[3]]
-
+        self.data_source = AsyncDataSource()
         self.last_media_group = None
 
         super().__init__(
@@ -32,4 +28,6 @@ class ToolBot(Client):
             )
         )
 
-
+    async def calculate_target_source(self):
+        self.source_chats = [chat[1] for chat in await self.data_source.get_source_chats() if chat[3]]
+        self.target_chats = [chat[1] for chat in await self.data_source.get_target_chats() if chat[3]]
