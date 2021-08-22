@@ -24,7 +24,6 @@ async def check_duplicate(chat_id, items):
 
     from_cache = duplicate_cache.get(chat_id, set())
 
-
     if message_items == from_cache:
         return True
     else:
@@ -88,6 +87,7 @@ async def on_new_post(client, message):
                             url = getattr(entity, 'url', None)
 
                             if url and await check_spam(chat_id, chat_username, url):
+                                await client.send_message("me", f"block spam in url {url}")  # remove
                                 return None
 
                     if media_obj:
@@ -95,6 +95,7 @@ async def on_new_post(client, message):
                             media_class(media_obj['file_id'], caption=caption)
                         )
             if await check_duplicate(chat_id, message_items):
+                await client.send_message("me", f"block duplicate in message_items {str(message_items)}") # remove
                 return None
 
             for chat_id in client.target_chats:
@@ -102,10 +103,12 @@ async def on_new_post(client, message):
     else:
 
         message_text = getattr(message, 'text', None)
-        if message_text and await check_spam( chat_id, chat_username, message_text):
+        if message_text and await check_spam(chat_id, chat_username, message_text):
+            await client.send_message("me", f"block spam in message_text {message_text}") # remove
             return None
 
-        if await check_duplicate( chat_id, message_items):
+        if await check_duplicate(chat_id, message_items):
+            await client.send_message("me", f"block duplicate in message_text {message_text}") # remove
             return None
 
         for chat_id in client.target_chats:
