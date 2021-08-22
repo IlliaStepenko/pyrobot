@@ -37,16 +37,24 @@ async def filter_channel(_, __, query):
     return query.chat.id in __.source_chats and hasnt_button and isnt_edited
 
 
-async def check_spam(chat_id, chat_username, message_text):
+async def check_spam(chat_id, chat_username, message_text, whitelist=None):
+    if whitelist is None:
+        whitelist = []
+
     if message_text.find('t.me/') != -1 or message_text.find('@') != -1:
+        for item in whitelist:
+            if message_text.find(item) != -1:
+                return False
+
         return not(message_text.find(chat_id) != -1 or message_text.find(chat_username) != -1)
 
 
 @Client.on_message(filters.me & filters.command(['rects']))
-def recalculate_target_source(client, message):
-    client.source_chats = [chat[1] for chat in client.data_source.get_source_chats() if chat[3]]
-    client.target_chats = [chat[1] for chat in client.data_source.get_target_chats() if chat[3]]
-    
+async def recalculate_target_source(client, message):
+    client.source_chats = [chat[1] for chat in await client.data_source.get_source_chats() if chat[3]]
+    client.target_chats = [chat[1] for chat in await client.data_source.get_target_chats() if chat[3]]
+    client.whitelist = [item[1].strip() for item in await client.data_source.get_white_list()]
+
 
 @Client.on_message(filters.channel & filters.create(filter_channel))
 async def on_new_post(client, message):
@@ -74,7 +82,7 @@ async def on_new_post(client, message):
                     caption = getattr(message, 'caption', None)
                     message_items.add(caption)
 
-                    if caption and await check_spam(chat_id, chat_username, caption):
+                    if caption and await check_spam(chat_id, chat_username, caption, client.whitelist):
                         return None
 
                     entities = getattr(message, 'entities', [])
@@ -86,7 +94,7 @@ async def on_new_post(client, message):
                         for entity in entities:
                             url = getattr(entity, 'url', None)
 
-                            if url and await check_spam(chat_id, chat_username, url):
+                            if url and await check_spam(chat_id, chat_username, url, client.whitelist):
                                 await client.send_message("me", f"block spam in url {url}")  # remove
                                 return None
 
@@ -103,7 +111,7 @@ async def on_new_post(client, message):
     else:
 
         message_text = getattr(message, 'text', None)
-        if message_text and await check_spam(chat_id, chat_username, message_text):
+        if message_text and await check_spam(chat_id, chat_username, message_text, client.whitelist):
             await client.send_message("me", f"block spam in message_text {message_text}") # remove
             return None
 

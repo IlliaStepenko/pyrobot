@@ -26,15 +26,19 @@ class AsyncDataSource:
             pool
         )
 
-    def get_target_chats(self):
+    async def get_target_chats(self):
         sql = '''SELECT * FROM public."TargetChats";'''
-        return self.pool.fetch(sql)
+        return await self.pool.fetch(sql)
 
-    def get_source_chats(self):
+    async def get_source_chats(self):
         sql = '''SELECT * FROM public."SourceChats";'''
-        return self.pool.fetch(sql)
+        return await self.pool.fetch(sql)
 
-    def close(self):
+    async def get_white_list(self):
+        sql = '''SELECT * FROM public."WhiteList";'''
+        return await self.pool.fetch(sql)
+
+    async def close(self):
         pass
         # self.conn.close()
         # self.cursor.close()
