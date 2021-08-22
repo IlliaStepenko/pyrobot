@@ -14,9 +14,8 @@ duplicate_cache = dict()
 
 
 async def check_duplicate(chat_id, items):
-
+    message_items = set()
     if not issubclass(items.__class__, Iterable):
-        message_items = set()
         if items:
             message_items.add(items)
     else:
@@ -24,10 +23,13 @@ async def check_duplicate(chat_id, items):
 
     from_cache = duplicate_cache.get(chat_id, set())
 
-    if message_items == from_cache:
+    if from_cache == set() and message_items == set():
+        return False
+    elif message_items == from_cache:
         return True
     else:
         duplicate_cache.update({chat_id: message_items})
+
     return False
 
 
@@ -67,7 +69,8 @@ async def on_new_post(client, message):
 
     media_group_id = getattr(message, 'media_group_id', None)
     message_items = set()
-    message_items.add(getattr(message, 'text', None))
+
+
 
     if media_group_id:
         if media_group_id != client.last_media_group:
@@ -80,7 +83,8 @@ async def on_new_post(client, message):
                 for item, media_class in media_types.items():
                     media_obj = getattr(message, item, None)
                     caption = getattr(message, 'caption', None)
-                    message_items.add(caption)
+                    if caption is not None:
+                        message_items.add(caption)
 
                     if caption and await check_spam(chat_id, chat_username, caption, client.whitelist):
                         return None
@@ -109,15 +113,28 @@ async def on_new_post(client, message):
             for chat_id in client.target_chats:
                 await client.send_media_group(chat_id, media_group_to_send)
     else:
-
         message_text = getattr(message, 'text', None)
-        if message_text and await check_spam(chat_id, chat_username, message_text, client.whitelist):
+
+        caption = getattr(message, 'caption', None)
+
+        if message_text is not None:
+            message_items.add(message_text)
+
+        if caption is not None:
+            message_items.add(caption)
+
+        if message_text is not None and await check_spam(chat_id, chat_username, message_text, client.whitelist):
             await client.send_message("me", f"block spam in message_text {message_text}") # remove
+            return None
+
+        if caption is not None and await check_spam(chat_id, chat_username, caption, client.whitelist):
+            await client.send_message("me", f"block spam in caption {caption}") # remove
             return None
 
         if await check_duplicate(chat_id, message_items):
             await client.send_message("me", f"block duplicate in message_text {message_text}") # remove
             return None
+
 
         for chat_id in client.target_chats:
             await client.copy_message(chat_id, message['chat']['id'], message['message_id'])
