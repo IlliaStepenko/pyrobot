@@ -60,6 +60,7 @@ async def recalculate_target_source(client, message):
 
 @Client.on_message(filters.channel & filters.create(filter_channel))
 async def on_new_post(client, message):
+
     chat = getattr(message, 'chat')
     if chat:
         chat_id = str(getattr(chat, 'id', None))
@@ -69,8 +70,6 @@ async def on_new_post(client, message):
 
     media_group_id = getattr(message, 'media_group_id', None)
     message_items = set()
-
-
 
     if media_group_id:
         if media_group_id != client.last_media_group:
@@ -122,6 +121,23 @@ async def on_new_post(client, message):
 
         if caption is not None:
             message_items.add(caption)
+
+        caption_entities = getattr(message, 'caption_entities', None)
+        if caption_entities is not None:
+            for item in caption_entities:
+                caption_url = getattr(item, 'url', None)
+                if caption_url and await check_spam(chat_id, chat_username, caption_url, client.whitelist):
+                    await client.send_message("me", f"block spam in caption_entity {caption_url}")  # remove
+                    return None
+
+        message_entities = getattr(message, 'entities', None)
+        if message_entities is not None:
+            for item in message_entities:
+                message_url = getattr(item, 'url', None)
+                if message_url and await check_spam(chat_id, chat_username, message_url, client.whitelist):
+                    await client.send_message("me", f"block spam in message entity {message_url}")  # remove
+                    return None
+
 
         if message_text is not None and await check_spam(chat_id, chat_username, message_text, client.whitelist):
             await client.send_message("me", f"block spam in message_text {message_text}") # remove
