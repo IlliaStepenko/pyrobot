@@ -62,7 +62,7 @@ async def run_python(client, message):
         print("\nresult\n")
         exec(python_text)
         sys.stdout = old_buffer
-        await client.edit_message_text( message['chat']['id'], message['message_id'], result)
+        await client.edit_message_text( message['chat']['id'], message['message_id'], new_buffer.getvalue())
     except Exception as e:
         sys.stdout = old_buffer
         await client.edit_message_text(message['chat']['id'], message['message_id'], str(e))
