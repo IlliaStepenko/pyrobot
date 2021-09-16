@@ -78,8 +78,8 @@ async def translate_message(client, message):
         try:
             translator = TextBlob(to_translate)
             translated = translator.translate(to=lang)
-        except:
-            pass
+        except Exception as e:
+            translated = str(e)
 
         await client.edit_message_text(
             message['chat']['id'], message['message_id'], translated)
