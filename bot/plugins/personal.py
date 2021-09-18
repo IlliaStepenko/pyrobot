@@ -1,7 +1,7 @@
 import datetime
 import os
+import io
 import sys
-
 from textblob import TextBlob
 from pyrogram import filters, Client
 
@@ -59,20 +59,12 @@ async def run_python(client, message):
 
     old_buffer = sys.stdout
     try:
-        with open('temp.txt', 'w') as output:
-            sys.stdout = output
-            output.write(f"code: \n{python_text}\n")
-            output.write("\nresult: \n")
-            exec(python_text)
-            sys.stdout = old_buffer
-
-        result = ""
-        with open('temp.txt', 'r') as result:
-            result = "".join(result.readlines())
-
-        os.remove('temp.txt')
-
-        await client.edit_message_text( message['chat']['id'], message['message_id'], result)
+        sys.stdout = new_buffer = io.StringIO()
+        print(f"code: \n{python_text}\n")
+        print("\nresult\n")
+        exec(python_text, globals())
+        sys.stdout = old_buffer
+        await client.edit_message_text( message['chat']['id'], message['message_id'], new_buffer.getvalue())
     except Exception as e:
         sys.stdout = old_buffer
         await client.edit_message_text(message['chat']['id'], message['message_id'], str(e))
@@ -88,8 +80,8 @@ async def translate_message(client, message):
         try:
             translator = TextBlob(to_translate)
             translated = translator.translate(to=lang)
-        except:
-            pass
+        except Exception as e:
+            translated = str(e)
 
         await client.edit_message_text(
             message['chat']['id'], message['message_id'], translated)
@@ -102,8 +94,8 @@ async def translate_message(client, message):
             try:
                 translator = TextBlob(message_text)
                 translated = translator.translate(to=lang)
-            except:
-                pass
+            except Exception as e:
+                translated = str(e)
 
             await client.edit_message_text(
                 message['chat']['id'], message['message_id'], translated)
