@@ -5,8 +5,10 @@ import sys
 from textblob import TextBlob
 from pyrogram import filters, Client
 
+command_last_used = None
 
 LANGUAGE_CODES = ['ru', 'en']
+
 
 @Client.on_message(filters.command('check') & filters.me & filters.chat("me"))
 async def check(client, message):
@@ -107,4 +109,16 @@ async def translate_message(client, message):
                 message['chat']['id'], message['message_id'], translated)
 
 
+@Client.on_message(filters.command('vanvirgin'))
+async def get_ivans_virginity(client, message):
 
+    global command_last_used
+
+    if command_last_used is None \
+            or bool((datetime.datetime.now() - command_last_used).seconds > 60) \
+            or bool(message.from_user and message.from_user.is_self):
+        command_last_used = datetime.datetime.now()
+
+        today = datetime.datetime.today().date()
+        vanya_brth = datetime.date(today.year - 29, 4, 2)
+        await message.reply(f"Ваня без секса {(today - vanya_brth).days} дней")
