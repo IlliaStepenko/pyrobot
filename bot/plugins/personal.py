@@ -109,8 +109,15 @@ async def get_ivans_virginity(client, message):
     if command_last_used is None \
             or bool((datetime.datetime.now() - command_last_used).seconds > 60) \
             or bool(message.from_user and message.from_user.is_self):
-        command_last_used = datetime.datetime.now()
+
 
         today = datetime.datetime.today().date()
         vanya_brth = datetime.date(today.year - 29, 4, 2)
-        await message.reply(f"Ваня без секса {(today - vanya_brth).days} дней")
+        msg_text = f"Ваня без секса {(today - vanya_brth).days} дней"
+
+        if bool(message.from_user and message.from_user.is_self):
+            await client.edit_message_text(
+                message['chat']['id'], message['message_id'], msg_text)
+        else:
+            command_last_used = datetime.datetime.now()
+            await message.reply(msg_text)
