@@ -23,7 +23,8 @@ class ToolBot(Client):
         self.whitelist = []
 
         super().__init__(
-            session_name=bot_config.SESSION,
+            session_string=bot_config.SESSION,
+            name="toolbot",
             api_id=bot_config.API_ID,
             api_hash=bot_config.API_HASH,
             plugins=dict(

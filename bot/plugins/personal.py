@@ -7,7 +7,7 @@ from pyrogram import filters, Client
 
 command_last_used = None
 
-LANGUAGE_CODES = ['ru', 'en']
+LANGUAGE_CODES = ['ru', 'en', 'pl']
 
 
 @Client.on_message(filters.command('check') & filters.me & filters.chat("me"))
@@ -55,7 +55,7 @@ async def delete_all_message(client, message):
 @Client.on_message(filters.command('py') & filters.me)
 async def run_python(client, message):
 
-    python_text = message['text'].replace('/py', '')
+    python_text = message.text.replace('/py', '')
 
     old_buffer = sys.stdout
     try:
@@ -64,60 +64,43 @@ async def run_python(client, message):
         print("\nresult\n")
         exec(python_text, globals())
         sys.stdout = old_buffer
-        await client.edit_message_text( message['chat']['id'], message['message_id'], new_buffer.getvalue())
+        await client.edit_message_text(message.chat.id, message.id, new_buffer.getvalue())
     except Exception as e:
         sys.stdout = old_buffer
-        await client.edit_message_text(message['chat']['id'], message['message_id'], str(e))
+        await client.edit_message_text(message.chat.id, message.id, str(e))
 
 
 @Client.on_message(filters.command(LANGUAGE_CODES) & filters.me)
 async def translate_message(client, message):
-    lang = message['command'][0]
-    if len(message['command']) > 1:
 
-        to_translate = " ".join(message['command'][1:])
+    from_lang = message.command[0]
+    to_lang = message.command[1]
+
+
+    if len(message.command) > 2:
+
+        to_translate = " ".join(message.command[2:])
         translated = "translating_error"
         try:
             translator = TextBlob(to_translate)
-            translated = translator.translate(to=lang)
+            translated = translator.translate(from_lang=from_lang, to=to_lang)
         except Exception as e:
             translated = str(e)
 
         await client.edit_message_text(
-            message['chat']['id'], message['message_id'], translated)
+            message.chat.id, message.id, translated)
 
     elif getattr(message, 'reply_to_message', None):
-        reply = message['reply_to_message']
+        reply = message.reply_to_message
         message_text = getattr(reply, 'text', None)
         if message_text:
             translated = "translating_error"
             try:
                 translator = TextBlob(message_text)
-                translated = translator.translate(to=lang)
+                translated = translator.translate(from_lang=from_lang, to=to_lang)
             except Exception as e:
                 translated = str(e)
 
             await client.edit_message_text(
-                message['chat']['id'], message['message_id'], translated)
+                message.chat.id, message.id, translated)
 
-
-@Client.on_message(filters.command('vanvirgin'))
-async def get_ivans_virginity(client, message):
-
-    global command_last_used
-
-    if command_last_used is None \
-            or bool((datetime.datetime.now() - command_last_used).seconds > 60) \
-            or bool(message.from_user and message.from_user.is_self):
-
-
-        today = datetime.datetime.today().date()
-        vanya_brth = datetime.date(today.year - 29, 4, 2)
-        msg_text = f"Ваня без секса {(today - vanya_brth).days} дней"
-
-        if bool(message.from_user and message.from_user.is_self):
-            await client.edit_message_text(
-                message['chat']['id'], message['message_id'], msg_text)
-        else:
-            command_last_used = datetime.datetime.now()
-            await message.reply(msg_text)

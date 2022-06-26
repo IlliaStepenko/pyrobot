@@ -19,7 +19,9 @@ class AsyncDataSource:
                     database=Config.DBNAME
                 )
         except Exception as e:
-            dsn = os.environ['DATABASE_URL']
+            dsn = os.environ.get('DATABASE_URL', None)
+            if dsn is None:
+                dsn = 'postgres://sgsonrowlgcoor:c3ee4c8902762f5b60bdde37717722daad44cc3b43e8731e0553cb21efff1c5e@ec2-34-242-89-204.eu-west-1.compute.amazonaws.com:5432/d6m1o6sffr2l8a'
             pool = asyncpg.create_pool(dsn=dsn)
 
         self.pool = loop.run_until_complete(

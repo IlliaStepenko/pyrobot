@@ -75,7 +75,7 @@ async def on_new_post(client, message):
         if media_group_id != client.last_media_group:
             client.last_media_group = media_group_id
             media_group_to_send = []
-            media_group_messages = await client.get_media_group(chat_id, message['message_id'])
+            media_group_messages = await client.get_media_group(chat_id, message.id)
 
             for message in media_group_messages:
 
@@ -103,7 +103,7 @@ async def on_new_post(client, message):
 
                     if media_obj:
                         media_group_to_send.append(
-                            media_class(media_obj['file_id'], caption=caption)
+                            media_class(media_obj.file_id, caption=caption)
                         )
             if await check_duplicate(chat_id, message_items):
                 await client.send_message("me", f"block duplicate in message_items {str(message_items)}") # remove
@@ -153,7 +153,7 @@ async def on_new_post(client, message):
 
 
         for chat_id in client.target_chats:
-            await client.copy_message(chat_id, message['chat']['id'], message['message_id'])
+            await client.copy_message(chat_id, message.chat.id, message.id)
 
 
 @Client.on_message(filters.command('lastn') & filters.me)
