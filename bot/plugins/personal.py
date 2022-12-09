@@ -22,7 +22,7 @@ async def det_tukan(client, message):
     await message.reply('@'+tukan['username'])
 
 
-@Client.on_message(filters.command('dall') & filters.me & ~filters.chat("me"))
+@Client.on_message(filters.command('dall') & filters.me)
 async def delete_all_message(client, message):
     LIMIT = 50
 
@@ -30,7 +30,7 @@ async def delete_all_message(client, message):
 
     has_messages = True
 
-    chat_id = message['chat']['id']
+    chat_id = message.chat.id
 
     await message.delete()
 
@@ -39,7 +39,7 @@ async def delete_all_message(client, message):
         chat_messages = []
 
         async for message in client.search_messages(chat_id=chat_id, from_user='me', offset=offset, limit=LIMIT):
-            chat_messages.append(message['message_id'])
+            chat_messages.append(message.id)
 
         await client.delete_messages(chat_id=chat_id, message_ids=chat_messages)
 
@@ -103,4 +103,3 @@ async def translate_message(client, message):
 
             await client.edit_message_text(
                 message.chat.id, message.id, translated)
-

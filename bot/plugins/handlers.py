@@ -161,4 +161,17 @@ async def get_new_post(client, message):
     messages = await client.get_history("insiderUKR", limit=2)
 
 
+@Client.on_message(filters.command('add_chat') & filters.me)
+async def add_source_chat(client, message):
+    updated = False
 
+    if hasattr(message, 'reply_to_message') and message.reply_to_message is not None:
+
+        if "source" in message.command:
+            forwarded_from_chat = message.reply_to_message.forward_from_chat.username
+            await client.join_chat(forwarded_from_chat)
+
+    if updated:
+        client.source_chats = [chat[1] for chat in await client.data_source.get_source_chats() if chat[3]]
+        client.target_chats = [chat[1] for chat in await client.data_source.get_target_chats() if chat[3]]
+        client.whitelist = [item[1].strip() for item in await client.data_source.get_white_list()]
