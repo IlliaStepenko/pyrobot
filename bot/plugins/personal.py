@@ -1,14 +1,16 @@
+import asyncio
 import datetime
 import random
 import io
 import sys
 from pyrogram import filters, Client
+from pyrogram import enums
 
 command_last_used = None
 
 
 async def not_me_filter(_, __, m):
-    return not bool(m.from_user and m.from_user.is_self or getattr(m, "outgoing", False))
+    return m.chat.id == -1001162926553 and not bool(m.from_user and m.from_user.is_self or getattr(m, "outgoing", False))
 
 
 @Client.on_message(filters.command('check') & filters.me & filters.chat("me"))
@@ -58,6 +60,7 @@ async def run_abuser(client, message):
     client.abuser_on = True
     await client.send_message("me", "abuser enabled")
 
+
 @Client.on_message(filters.command('abuser_off') & filters.me)
 async def stop_abuser(client, message):
     client.abuser_on = False
@@ -66,8 +69,7 @@ async def stop_abuser(client, message):
 
 @Client.on_message(filters.create(not_me_filter))
 async def my_handler(client, message):
-
-    if client.abuser_on and message.chat.id == -1001162926553:
+    if client.abuser_on:
         phrases = [
             'хрю',
             'Вы всегда так глупы, или сегодня особый случай?',
@@ -82,20 +84,27 @@ async def my_handler(client, message):
             'Скоро на тебя наденут деревянный макинтош\nИ в твоём доме будет играть музыка\nНо ты её не услышишь!',
             '-'
         ]
-        FILTERED_STRINGS = ('пон4чик', 'пончик', 'Ponchik','P0Nchik','Пончиk', '', 'вадим', 'dailiastqq', 'поня ', '🍩', 'пон4ик', 'понchik', 'кончик')
+        FILTERED_STRINGS = (
+            'пон4чик', 'пончик', 'Ponchik', 'P0Nchik', 'Пончиk', 'вадим', 'dailiastqq', 'поня ', '🍩', 'пон4ик',
+            'понchik', 'кончик')
         IDS = (77003216, 371004967, 5253922892, 334810090, 5277675033, 357893284)
 
-        def filter_strings(message_text):
+        def filter_strings(message_text, FILTERED_STRINGS):
             for string in FILTERED_STRINGS:
                 if string in message_text:
                     return True
             return False
 
-        if message.text and filter_strings(message.text.lower()):
-            await message.reply(phrases[random.randint(0, 9)])
+        send_message = any([
+            bool(message.text and filter_strings(message.text.lower(), FILTERED_STRINGS)),
+            bool(message.sticker and message.sticker.set_name in ('ponchik1488_by_fStikBot', 'gaydonbass')),
+            bool(
+                message.from_user and message.from_user.id in IDS and message.reply_to_message and message.reply_to_message.from_user and message.reply_to_message.from_user.id == 654009330)
+           ]
+        )
 
-        elif message.sticker and message.sticker.set_name in ('ponchik1488_by_fStikBot', 'gaydonbass'):
+        if send_message:
+            await client.send_chat_action(message.chat.id, enums.ChatAction.TYPING)
+            await asyncio.sleep(4)
             await message.reply(phrases[random.randint(0, 9)])
-
-        elif message.from_user and message.from_user.id in IDS and message.reply_to_message and message.reply_to_message.from_user and message.reply_to_message.from_user.id == 654009330:
-            await message.reply(phrases[random.randint(0, 9)])
+            await client.send_chat_action(message.chat.id, enums.ChatAction.CANCEL)
