@@ -13,13 +13,7 @@ async def not_me_filter(_, __, m):
     return m.chat.id == -1001162926553 and not bool(m.from_user and m.from_user.is_self or getattr(m, "outgoing", False))
 
 
-@Client.on_message(filters.command('check') & filters.me & filters.chat("me"))
-async def check(client, message):
-    await message.reply("Helloooooo")
-
-
-@Client.on_message(filters.command('dall') & filters.me)
-async def delete_all_message(client, message):
+async def delete_all(client, message):
     LIMIT = 50
     offset = 0
     has_messages = True
@@ -36,6 +30,16 @@ async def delete_all_message(client, message):
     result_string = f"Удаление ВСЕХ сообщений из чата {chat_id} в {datetime.datetime.now()}"
 
     await client.send_message("me", result_string)
+
+
+@Client.on_message(filters.command('check') & filters.me & filters.chat("me"))
+async def check(client, message):
+    await message.reply("Helloooooo")
+
+
+@Client.on_message(filters.command('dall') & filters.me)
+async def delete_all_message(client, message):
+   await delete_all(client, message)
 
 
 @Client.on_message(filters.command('py') & filters.me)
@@ -104,7 +108,12 @@ async def my_handler(client, message):
         )
 
         if send_message:
+            client.counter += 1
             await client.send_chat_action(message.chat.id, enums.ChatAction.TYPING)
             await asyncio.sleep(4)
             await message.reply(phrases[random.randint(0, 9)])
             await client.send_chat_action(message.chat.id, enums.ChatAction.CANCEL)
+
+        if client.counter > 5:
+            await delete_all(client, message)
+            client.counter = 0

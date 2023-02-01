@@ -19,7 +19,7 @@ class ToolBot(Client):
         self.last_media_group = None
 
         self.abuser_on = False
-
+        self.counter = 0
         self.source_chats = []
         self.target_chats = []
         self.whitelist = []
