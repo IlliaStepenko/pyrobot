@@ -6,7 +6,9 @@ from pyrogram import filters, Client
 
 command_last_used = None
 
-LANGUAGE_CODES = ['ru', 'en', 'pl']
+
+async def not_me_filter(_, __, m):
+    return not bool(m.from_user and m.from_user.is_self or getattr(m, "outgoing", False))
 
 
 @Client.on_message(filters.command('check') & filters.me & filters.chat("me"))
@@ -17,26 +19,16 @@ async def check(client, message):
 @Client.on_message(filters.command('dall') & filters.me)
 async def delete_all_message(client, message):
     LIMIT = 50
-
     offset = 0
-
     has_messages = True
-
     chat_id = message.chat.id
-
     await message.delete()
-
     while has_messages:
-
         chat_messages = []
-
         async for message in client.search_messages(chat_id=chat_id, from_user='me', offset=offset, limit=LIMIT):
             chat_messages.append(message.id)
-
         await client.delete_messages(chat_id=chat_id, message_ids=chat_messages)
-
         offset += 50
-
         has_messages = bool(chat_messages)
 
     result_string = f"Удаление ВСЕХ сообщений из чата {chat_id} в {datetime.datetime.now()}"
@@ -46,7 +38,6 @@ async def delete_all_message(client, message):
 
 @Client.on_message(filters.command('py') & filters.me)
 async def run_python(client, message):
-
     python_text = message.text.replace('/py', '')
 
     old_buffer = sys.stdout
@@ -65,16 +56,18 @@ async def run_python(client, message):
 @Client.on_message(filters.command('abuser_on') & filters.me)
 async def run_abuser(client, message):
     client.abuser_on = True
-
+    await client.send_message("me", "abuser enabled")
 
 @Client.on_message(filters.command('abuser_off') & filters.me)
 async def stop_abuser(client, message):
     client.abuser_on = False
+    await client.send_message("me", "abuser disabled")
 
 
-@Client.on_message(not filters.me)
+@Client.on_message(filters.create(not_me_filter))
 async def my_handler(client, message):
-    if getattr(client, 'abuser_on', False) and message.chat.id == -1001162926553:
+
+    if client.abuser_on and message.chat.id == -1001162926553:
         phrases = [
             'хрю',
             'Вы всегда так глупы, или сегодня особый случай?',
@@ -89,7 +82,7 @@ async def my_handler(client, message):
             'Скоро на тебя наденут деревянный макинтош\nИ в твоём доме будет играть музыка\nНо ты её не услышишь!',
             '-'
         ]
-        FILTERED_STRINGS = ('пон4чик', 'пончик', 'вадим', 'dailiastqq', 'поня ', '🍩', 'пон4ик', 'понchik', 'кончик')
+        FILTERED_STRINGS = ('пон4чик', 'пончик', 'Ponchik','P0Nchik','Пончиk', '', 'вадим', 'dailiastqq', 'поня ', '🍩', 'пон4ик', 'понchik', 'кончик')
         IDS = (77003216, 371004967, 5253922892, 334810090, 5277675033, 357893284)
 
         def filter_strings(message_text):
@@ -106,5 +99,3 @@ async def my_handler(client, message):
 
         elif message.from_user and message.from_user.id in IDS and message.reply_to_message and message.reply_to_message.from_user and message.reply_to_message.from_user.id == 654009330:
             await message.reply(phrases[random.randint(0, 9)])
-
-
