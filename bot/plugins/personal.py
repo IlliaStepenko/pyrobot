@@ -135,4 +135,10 @@ async def send_voice(client, message):
     tts.write_to_fp(mp3_fp)
     setattr(mp3_fp, 'name', 'vvoice')
     await client.send_chat_action(message.chat.id, enums.ChatAction.CANCEL)
-    await client.send_voice(message.chat.id, mp3_fp)
+    if message.reply_to_message:
+        await client.send_voice(message.chat.id, mp3_fp, reply_to_message_id=message.reply_to_message.id)
+    else:
+        await client.send_voice(message.chat.id, mp3_fp, reply_to_message_id=message.reply_to_message.id)
+
+
+
