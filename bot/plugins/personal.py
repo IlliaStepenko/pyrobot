@@ -149,7 +149,7 @@ async def translate_message(client, message):
     command_2 = message.command[1]
     translator = Translator(from_lang=command_1, to_lang=command_2)
     if len(message.command) == 3:
-        command_3 = message.command[2]
+        command_3 = message.text.replace(command_1, '').replace(command_2, '')
         try:
             translation = translator.translate(command_3)
         except Exception as e:
