@@ -1,3 +1,5 @@
+from gtts import gTTS
+from io import BytesIO
 import asyncio
 import datetime
 import random
@@ -117,3 +119,20 @@ async def my_handler(client, message):
         if client.counter > 5:
             await delete_all(client, message)
             client.counter = 0
+
+
+@Client.on_message(filters.command('send_voice') & filters.me)
+async def send_voice(client, message):
+    await message.delete()
+    await client.send_chat_action(message.chat.id, enums.ChatAction.RECORD_AUDIO)
+    await asyncio.sleep(3)
+    to_speech = message.text.replace('/send_voice', '')
+    if not to_speech:
+        to_speech = 'Мне нечего сказать'
+
+    mp3_fp = BytesIO()
+    tts = gTTS(to_speech, lang='en')
+    tts.write_to_fp(mp3_fp)
+    setattr(mp3_fp, 'name', 'vvoice')
+    await client.send_chat_action(message.chat.id, enums.ChatAction.CANCEL)
+    await client.send_voice(message.chat.id, mp3_fp)
