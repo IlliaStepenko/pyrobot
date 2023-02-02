@@ -131,7 +131,7 @@ async def send_voice(client, message):
         to_speech = 'Мне нечего сказать'
 
     mp3_fp = BytesIO()
-    tts = gTTS(to_speech, lang='en')
+    tts = gTTS(to_speech, lang='ru')
     tts.write_to_fp(mp3_fp)
     setattr(mp3_fp, 'name', 'vvoice')
     await client.send_chat_action(message.chat.id, enums.ChatAction.CANCEL)
