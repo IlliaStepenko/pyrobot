@@ -138,7 +138,7 @@ async def send_voice(client, message):
     if message.reply_to_message:
         await client.send_voice(message.chat.id, mp3_fp, reply_to_message_id=message.reply_to_message.id)
     else:
-        await client.send_voice(message.chat.id, mp3_fp, reply_to_message_id=message.reply_to_message.id)
+        await client.send_voice(message.chat.id, mp3_fp)
 
 
 
