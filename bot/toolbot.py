@@ -18,7 +18,7 @@ class ToolBot(Client):
         self.data_source = AsyncDataSource()
         self.last_media_group = None
 
-        self.abuser_on = False
+        self.abuser_on = True
         self.counter = 0
         self.source_chats = []
         self.target_chats = []

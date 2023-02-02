@@ -121,7 +121,7 @@ async def my_handler(client, message):
             client.counter = 0
 
 
-@Client.on_message(filters.command('send_voice') & filters.me)
+@Client.on_message(filters.command('sv') & filters.me)
 async def send_voice(client, message):
     await message.delete()
     await client.send_chat_action(message.chat.id, enums.ChatAction.RECORD_AUDIO)
