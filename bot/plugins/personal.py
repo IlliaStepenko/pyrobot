@@ -126,7 +126,7 @@ async def send_voice(client, message):
     await message.delete()
     await client.send_chat_action(message.chat.id, enums.ChatAction.RECORD_AUDIO)
     await asyncio.sleep(3)
-    to_speech = message.text.replace('/send_voice', '')
+    to_speech = message.text.replace('/sv', '')
     if not to_speech:
         to_speech = 'Мне нечего сказать'
 
