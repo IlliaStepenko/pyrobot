@@ -18,6 +18,8 @@ httpx==0.13.3
 hyperframe==5.2.0
 idna==2.10
 joblib==0.17.0
+libretranslatepy==2.1.1
+lxml==4.9.2
 nltk==3.5
 numpy==1.19.3
 psycopg2==2.8.6
@@ -34,4 +36,5 @@ sqlparse==0.3.1
 textblob==0.15.3
 TgCrypto==1.2.5
 tqdm==4.54.0
+translate==3.6.1
 urllib3==1.26.2

@@ -1,3 +1,4 @@
+from translate import Translator
 from gtts import gTTS
 from io import BytesIO
 import asyncio
@@ -9,6 +10,7 @@ from pyrogram import filters, Client
 from pyrogram import enums
 
 command_last_used = None
+LAN_CODES = ["en", "ru", "pl"]
 
 
 async def not_me_filter(_, __, m):
@@ -141,4 +143,20 @@ async def send_voice(client, message):
         await client.send_voice(message.chat.id, mp3_fp)
 
 
-
+@Client.on_message(filters.command(LAN_CODES) & filters.me)
+async def translate_message(client, message):
+    command_1 = message.command[0]
+    command_2 = message.command[1]
+    translator = Translator(from_lang=command_1, to_lang=command_2)
+    if len(message.command) == 3:
+        command_3 = message.command[2]
+        try:
+            translation = translator.translate(command_3)
+        except Exception as e:
+            translation = 'exception'
+    elif message.reply_to_message:
+        translation = translator.translate(message.reply_to_message.text)
+    else:
+        await message.delete()
+        return
+    await client.edit_message_text(message.chat.id, message.id, translation)
