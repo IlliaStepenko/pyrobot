@@ -11,13 +11,7 @@ class AsyncDataSource:
 
         try:
             from .local_config import DBConfig as Config
-            pool = asyncpg.create_pool(
-                    user=Config.USER,
-                    password=Config.PASSWORD,
-                    host=Config.HOST,
-                    port='5432',
-                    database=Config.DBNAME
-                )
+            pool = asyncpg.create_pool(dsn=Config.DSN)
         except Exception as e:
             dsn = os.environ.get('DATABASE_URL', None)
             pool = asyncpg.create_pool(dsn=dsn)
