@@ -147,9 +147,10 @@ async def send_voice(client, message):
 async def translate_message(client, message):
     command_1 = message.command[0]
     command_2 = message.command[1]
+    print(message)
     translator = Translator(from_lang=command_1, to_lang=command_2)
     if len(message.command) > 2:
-        command_3 = message.text.replace(command_1, '').replace(command_2, '')
+        command_3 = message.text.replace('/','').replace(command_1, '').replace(command_2, '')
         try:
             translation = translator.translate(command_3)
         except Exception as e:
