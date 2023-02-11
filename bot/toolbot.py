@@ -3,7 +3,7 @@ import os
 from pyrogram import Client, filters
 import datetime
 
-from database.main import DataSource, AsyncDataSource
+from database.main import AsyncDataSource
 
 
 class ToolBot(Client):
