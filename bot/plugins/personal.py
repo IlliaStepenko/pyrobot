@@ -10,7 +10,7 @@ from pyrogram import filters, Client
 from pyrogram import enums
 
 command_last_used = None
-LAN_CODES = ["en", "ru", "pl"]
+LAN_CODES = ["en", "ru", "pl", "ua"]
 
 
 async def not_me_filter(_, __, m):
