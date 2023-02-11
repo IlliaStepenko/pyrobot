@@ -23,6 +23,7 @@ class ToolBot(Client):
         self.source_chats = []
         self.target_chats = []
         self.whitelist = []
+        self.my_messages = dict()
 
         super().__init__(
             session_string=bot_config.SESSION,
@@ -31,7 +32,7 @@ class ToolBot(Client):
             api_hash=bot_config.API_HASH,
             plugins=dict(
                 root="plugins",
-                include=['handlers','personal']
+                include=['handlers', 'personal']
             )
         )
 
