@@ -111,9 +111,9 @@ async def stop_abuser(client, message):
 async def my_handler(client, message):
     if client.abuser_on:
         
-     if client.counter > 5:
-        await delete_all(client, message, 'cch')
-        client.counter = 0
+        if client.counter > 5:
+            await delete_all(client, message, 'cch')
+            client.counter = 0
         
         phrases = [
             'хрю',
