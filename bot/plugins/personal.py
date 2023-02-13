@@ -110,6 +110,11 @@ async def stop_abuser(client, message):
 @Client.on_message(filters.create(not_me_filter))
 async def my_handler(client, message):
     if client.abuser_on:
+        
+     if client.counter > 5:
+        await delete_all(client, message, 'cch')
+        client.counter = 0
+        
         phrases = [
             'хрю',
             'Вы всегда так глупы, или сегодня особый случай?',
@@ -153,9 +158,7 @@ async def my_handler(client, message):
         if msg:
             add_to_my_messages(client, msg)
 
-        if client.counter > 5:
-            await delete_all(client, message, 'cch')
-            client.counter = 0
+       
 
 
 @Client.on_message(filters.command('sv') & filters.me)
