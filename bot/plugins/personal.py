@@ -10,7 +10,7 @@ from pyrogram import filters, Client
 from pyrogram import enums
 
 command_last_used = None
-LAN_CODES = ["en", "ru", "pl", "uk"]
+LAN_CODES = ["en", "ru", "pl", "uk", "de", "it"]
 
 
 def add_to_my_messages(client, message):
@@ -18,7 +18,6 @@ def add_to_my_messages(client, message):
     if not client.my_messages.get(chat_id, []):
         client.my_messages.update({chat_id: []})
     client.my_messages[chat_id].append(message.id)
-    message.continue_propagation()
 
 
 async def not_me_filter(_, __, m):
@@ -62,6 +61,21 @@ async def delete_all(client, message, mode='cch'):
     await client.send_message("me", result_string)
 
 
+@Client.on_message(filters.me)
+async def catch_message_id(client, message):
+    add_to_my_messages(client, message)
+    if hasattr(message, 'command') and not message.command and client.autotranslate:
+        try:
+            translator = Translator(from_lang='ru', to_lang=client.autotranslate)
+            translation = translator.translate(message.text)
+            await client.edit_message_text(message.chat.id, message.id, translation)
+        except:
+            pass
+        message.stop_propagation()
+        return
+    message.continue_propagation()
+
+
 @Client.on_message(filters.command('check') & filters.me & filters.chat("me"))
 async def check(client, message):
     await message.reply("Helloooooo")
@@ -79,7 +93,7 @@ async def delete_all_message(client, message):
 
 
 @Client.on_message(filters.command('py') & filters.me)
-async def run_python(client, message):
+async def run_py(client, message):
     python_text = message.text.replace('/py', '')
 
     old_buffer = sys.stdout
@@ -110,11 +124,11 @@ async def stop_abuser(client, message):
 @Client.on_message(filters.create(not_me_filter))
 async def my_handler(client, message):
     if client.abuser_on:
-        
+
         if client.counter > 5:
             await delete_all(client, message, 'cch')
             client.counter = 0
-        
+
         phrases = [
             'хрю',
             'Вы всегда так глупы, или сегодня особый случай?',
@@ -157,8 +171,6 @@ async def my_handler(client, message):
 
         if msg:
             add_to_my_messages(client, msg)
-
-       
 
 
 @Client.on_message(filters.command('sv') & filters.me)
@@ -203,6 +215,8 @@ async def translate_message(client, message):
     await client.edit_message_text(message.chat.id, message.id, translation)
 
 
-@Client.on_message(filters.me)
-def catch_message_id(client, message):
-    add_to_my_messages(client, message)
+@Client.on_message(filters.command('autotranslate') & filters.me)
+async def autotranslate(client, message):
+    client.autotranslate = None if len(message.command) == 1 else message.command[1]
+    await message.reply(
+        "translation disabled" if len(message.command) == 1 else f"translation to {message.command[1]} enabled")

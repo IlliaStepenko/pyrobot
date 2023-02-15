@@ -24,6 +24,9 @@ class ToolBot(Client):
         self.target_chats = []
         self.whitelist = []
         self.my_messages = dict()
+        self.autotranslate = None
+
+
 
         super().__init__(
             session_string=bot_config.SESSION,
