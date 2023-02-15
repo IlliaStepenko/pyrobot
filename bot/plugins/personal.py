@@ -1,3 +1,4 @@
+from pyrogram.enums import MessageEntityType
 from translate import Translator
 from gtts import gTTS
 from io import BytesIO
@@ -64,7 +65,11 @@ async def delete_all(client, message, mode='cch'):
 @Client.on_message(filters.me)
 async def catch_message_id(client, message):
     add_to_my_messages(client, message)
-    if hasattr(message, 'command') and not message.command and client.autotranslate:
+    is_command = any([m.type == MessageEntityType.BOT_COMMAND for m in message.entities]) if hasattr(message, 'entities') and message.entities else False
+    print(message)
+    print(is_command)
+    if not is_command and client.autotranslate and client.autotranslate in LAN_CODES:
+
         try:
             translator = Translator(from_lang='ru', to_lang=client.autotranslate)
             translation = translator.translate(message.text)
@@ -72,7 +77,7 @@ async def catch_message_id(client, message):
         except:
             pass
         message.stop_propagation()
-        return
+
     message.continue_propagation()
 
 
@@ -217,6 +222,14 @@ async def translate_message(client, message):
 
 @Client.on_message(filters.command('autotranslate') & filters.me)
 async def autotranslate(client, message):
-    client.autotranslate = None if len(message.command) == 1 else message.command[1]
-    await message.reply(
-        "translation disabled" if len(message.command) == 1 else f"translation to {message.command[1]} enabled")
+    if len(message.command) > 1:
+        lang = message.command[1]
+        if message.command[1] in LAN_CODES:
+            client.autotranslate = lang
+            msg = await message.reply(f"translation to {lang} enabled")
+        else:
+            msg = await message.reply(f"lang {lang} not supported")
+    else:
+        msg = await message.reply("translation disabled")
+
+    add_to_my_messages(client, msg)
