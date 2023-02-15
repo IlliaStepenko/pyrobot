@@ -1,5 +1,4 @@
 from pyrogram.enums import MessageEntityType
-from translate import Translator
 from gtts import gTTS
 from io import BytesIO
 import asyncio
@@ -65,17 +64,14 @@ async def delete_all(client, message, mode='cch'):
 @Client.on_message(filters.me)
 async def catch_message_id(client, message):
     add_to_my_messages(client, message)
-    is_command = any([m.type == MessageEntityType.BOT_COMMAND for m in message.entities]) if hasattr(message, 'entities') and message.entities else False
-    print(message)
-    print(is_command)
+    is_command = any([m.type == MessageEntityType.BOT_COMMAND for m in message.entities]) if hasattr(message,
+                                                                                                     'entities') and message.entities else False
     if not is_command and client.autotranslate and client.autotranslate in LAN_CODES:
-
         try:
-            translator = Translator(from_lang='ru', to_lang=client.autotranslate)
-            translation = translator.translate(message.text)
+            translation = client.translator.translate(message.text, src='ru', dest=client.autotranslate).text
             await client.edit_message_text(message.chat.id, message.id, translation)
-        except:
-            pass
+        except :
+            await client.edit_message_text(message.chat.id, message.id, "tr_error")
         message.stop_propagation()
 
     message.continue_propagation()
@@ -205,15 +201,14 @@ async def send_voice(client, message):
 async def translate_message(client, message):
     command_1 = message.command[0]
     command_2 = message.command[1]
-    translator = Translator(from_lang=command_1, to_lang=command_2)
     if len(message.command) > 2:
         command_3 = message.text.replace('/', '').replace(command_1, '').replace(command_2, '')
         try:
-            translation = translator.translate(command_3)
+            translation = client.translator.translate(command_3, src=command_1, dest=command_2).text
         except Exception as e:
             translation = 'exception'
     elif message.reply_to_message:
-        translation = translator.translate(message.reply_to_message.text)
+        translation = client.translator.translate(message.reply_to_message.text, src=command_1, dest=command_2).text
     else:
         await message.delete()
         return
@@ -230,6 +225,7 @@ async def autotranslate(client, message):
         else:
             msg = await message.reply(f"lang {lang} not supported")
     else:
+        client.autotranslate = None
         msg = await message.reply("translation disabled")
 
     add_to_my_messages(client, msg)

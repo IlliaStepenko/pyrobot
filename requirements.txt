@@ -38,3 +38,4 @@ TgCrypto==1.2.5
 tqdm==4.54.0
 translate==3.6.1
 urllib3==1.26.2
+googletrans==3.1.0a0

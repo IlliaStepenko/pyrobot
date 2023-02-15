@@ -1,7 +1,7 @@
 import os
 
-from pyrogram import Client, filters
-import datetime
+from pyrogram import Client
+from googletrans import Translator
 
 from database.main import AsyncDataSource
 
@@ -25,8 +25,7 @@ class ToolBot(Client):
         self.whitelist = []
         self.my_messages = dict()
         self.autotranslate = None
-
-
+        self.translator = Translator()
 
         super().__init__(
             session_string=bot_config.SESSION,
