@@ -71,7 +71,7 @@ async def catch_message_id(client, message):
             translation = client.translator.translate(message.text, src='ru', dest=client.autotranslate).text
             await client.edit_message_text(message.chat.id, message.id, translation)
         except :
-            await client.edit_message_text(message.chat.id, message.id, "tr_error")
+            pass
         message.stop_propagation()
 
     message.continue_propagation()
