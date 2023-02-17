@@ -70,7 +70,7 @@ async def catch_message_id(client, message):
         try:
             translation = client.translator.translate(message.text, src='ru', dest=client.autotranslate).text
             await client.edit_message_text(message.chat.id, message.id, translation)
-        except :
+        except:
             pass
         message.stop_propagation()
 
@@ -229,3 +229,18 @@ async def autotranslate(client, message):
         msg = await message.reply("translation disabled")
 
     add_to_my_messages(client, msg)
+
+
+@Client.on_message(filters.command('info') & filters.me)
+async def autotranslate(client, message):
+    info_msg = str(message)
+
+    print(len(info_msg))
+
+    cnt = len(info_msg) // 4000
+    await client.send_message("me", info_msg[0:4000])
+
+    for i in range(1, cnt - 1):
+        await client.send_message("me", info_msg[i * 4000:(i + 1) * 4000])
+
+    await client.send_message("me", info_msg[cnt * 4000:])
