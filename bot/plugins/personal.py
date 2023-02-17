@@ -216,7 +216,7 @@ async def translate_message(client, message):
 
 
 @Client.on_message(filters.command('autotranslate') & filters.me)
-async def autotranslate(client, message):
+async def send_info(client, message):
     if len(message.command) > 1:
         lang = message.command[1]
         if message.command[1] in LAN_CODES:
