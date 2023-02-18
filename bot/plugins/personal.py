@@ -141,6 +141,21 @@ async def answer(client, message):
         await message.reply(answer['choices'][0]['text'])
 
 
+@Client.on_message(filters.command('ai') & filters.me)
+async def ai(client, message):
+    answer = client.ai.create(
+        model="text-davinci-003",
+        prompt=message.text,
+        temperature=0.5,
+        max_tokens=1000,
+        top_p=1.0,
+        frequency_penalty=0.5,
+        presence_penalty=0.5
+    )
+
+    await message.reply(answer['choices'][0]['text'])
+
+
 @Client.on_message(filters.command('sv') & filters.me)
 async def send_voice(client, message):
     await message.delete()
