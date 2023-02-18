@@ -1,11 +1,16 @@
 import asyncio
+import os
 
+import openai
 from pyrogram.methods.utilities.idle import idle
 
 from toolbot import ToolBot
 
 
 async def main(bot=None):
+
+    openai.api_key = os.environ.get('OPENAI', None)
+
     await bot.calculate_target_source()
     await bot.start()
     await idle()

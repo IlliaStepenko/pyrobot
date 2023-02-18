@@ -1,5 +1,6 @@
 import os
 
+import openai
 from pyrogram import Client
 from googletrans import Translator
 
@@ -26,6 +27,8 @@ class ToolBot(Client):
         self.my_messages = dict()
         self.autotranslate = None
         self.translator = Translator()
+        self.ask_openai = False
+        self.ai = openai.Completion
 
         super().__init__(
             session_string=bot_config.SESSION,
