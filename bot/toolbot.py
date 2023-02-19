@@ -34,6 +34,13 @@ class ToolBot(Client):
         self.ai = openai.Completion
 
         self.lang_codes = self.DEFAULT_LANG_CODES.copy()
+        self.nn_model = "text-davinci-003",
+        self.temperature = float(0.5),
+        self.max_tokens = int(1000),
+        self.top_p = float(1.0),
+        self.frequency_penalty = float(0.5),
+        self.presence_penalty = float(0.5)
+
 
         super().__init__(
             session_string=bot_config.SESSION,

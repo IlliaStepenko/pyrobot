@@ -1,3 +1,5 @@
+import json
+
 from pyrogram.enums import MessageEntityType
 from gtts import gTTS
 from io import BytesIO
@@ -7,6 +9,13 @@ import io
 import sys
 from pyrogram import filters, Client
 from pyrogram import enums
+
+
+def make_readable_list(l):
+    return ", \n".join(['\t\t\t\t' + str(i) for i in l])
+
+def extract_value(val):
+    return val[0] if isinstance(val, tuple) else val
 
 
 def add_to_my_messages(client, message):
@@ -134,13 +143,13 @@ async def answer(client, message):
 @Client.on_message(filters.command('ai') & filters.me)
 async def ai(client, message):
     answer = client.ai.create(
-        model="text-davinci-003",
+        model=extract_value(client.nn_model),
         prompt=message.text,
-        temperature=0.5,
-        max_tokens=1000,
-        top_p=1.0,
-        frequency_penalty=0.5,
-        presence_penalty=0.5
+        temperature=extract_value(client.temperature),
+        max_tokens=extract_value(client.max_tokens),
+        top_p=extract_value(client.top_p),
+        frequency_penalty=extract_value(client.frequency_penalty),
+        presence_penalty=extract_value(client.presence_penalty)
     )
 
     await message.reply(answer['choices'][0]['text'])
@@ -232,17 +241,20 @@ async def ask_openai(client, message):
     add_to_my_messages(client, msg)
 
 
-def make_readable_list(l):
-    return ", \n".join(['\t\t\t\t' + str(i) for i in l])
-
-
-@Client.on_message(filters.command('get_config') & filters.me)
 async def get_config(client, message):
     result = 'ConfigList:\n\n'
-    result += f"\t\t\t\tabuser_on: {client.abuser_on}\n"
-    result += f"\t\t\t\tautotranslate: {client.autotranslate}\n"
-    result += f"\t\t\t\task_openai: {client.ask_openai}\n"
-    result += f"\t\t\t\tlang_codes: {', '.join(client.lang_codes)}"
+    result += f"\t\t\t\tabuser_on: {extract_value(client.abuser_on)}\n"
+    result += f"\t\t\t\tautotranslate: {extract_value(client.autotranslate)}\n"
+    result += f"\t\t\t\task_openai: {extract_value(client.ask_openai)}\n"
+    result += f"\t\t\t\tlang_codes: {', '.join(client.lang_codes)}\n"
+
+    result += f"\t\t\t\tnn_model: {extract_value(client.nn_model)}\n"
+    result += f"\t\t\t\ttemperature: {extract_value(client.temperature)}\n"
+    result += f"\t\t\t\tmax_tokens: {extract_value(client.max_tokens)}\n"
+    result += f"\t\t\t\ttop_p: {extract_value(client.top_p)}\n"
+    result += f"\t\t\t\tfrequency_penalty: {extract_value(client.frequency_penalty)}\n"
+    result += f"\t\t\t\tpresence_penalty: {extract_value(client.presence_penalty)}\n"
+
     result += "\n\n"
     result += f'Source chats: [\n{make_readable_list(client.source_chats)}\n]'
     result += "\n\n"
@@ -251,3 +263,19 @@ async def get_config(client, message):
     result += f'White list: [\n{make_readable_list(client.whitelist)}\n]'
     msg = await message.reply(result, disable_web_page_preview=True)
     add_to_my_messages(client, msg)
+
+
+@Client.on_message(filters.command('get_config') & filters.me)
+async def get_config_c(client, message):
+    await get_config(client, message)
+
+
+@Client.on_message(filters.command('set_ai_config') & filters.me)
+async def set_ai_config(client, message):
+    text = "{" + message.text + "}"
+    dct = json.loads(text)
+    for k, v in dct.items():
+        if hasattr(client, k):
+            setattr(k, v)
+
+    await get_config(client, message)
