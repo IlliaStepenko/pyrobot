@@ -14,6 +14,7 @@ from pyrogram import enums
 def make_readable_list(l):
     return ", \n".join(['\t\t\t\t' + str(i) for i in l])
 
+
 def extract_value(val):
     return val[0] if isinstance(val, tuple) else val
 
@@ -271,9 +272,13 @@ async def get_config_c(client, message):
 
 
 @Client.on_message(filters.command('set_ai_config') & filters.me)
-async def set_ai_config(client, message):
+async def set_config(client, message):
     text = "{" + message.text + "}"
-    dct = json.loads(text)
+    try:
+        dct = json.loads(text)
+    except Exception as e:
+        message.reply(str(e))
+
     for k, v in dct.items():
         if hasattr(client, k):
             setattr(k, v)
