@@ -3,14 +3,10 @@ from gtts import gTTS
 from io import BytesIO
 import asyncio
 import datetime
-import random
 import io
 import sys
 from pyrogram import filters, Client
 from pyrogram import enums
-
-command_last_used = None
-LAN_CODES = ["en", "ru", "pl", "uk", "de", "it"]
 
 
 def add_to_my_messages(client, message):
@@ -69,7 +65,7 @@ async def catch_message_id(client, message):
     add_to_my_messages(client, message)
     is_command = any([m.type == MessageEntityType.BOT_COMMAND for m in message.entities]) if hasattr(message,
                                                                                                      'entities') and message.entities else False
-    if not is_command and client.autotranslate and client.autotranslate in LAN_CODES:
+    if not is_command and client.autotranslate and client.autotranslate in client.lang_codes:
         try:
             translation = client.translator.translate(message.text, src='ru', dest=client.autotranslate).text
             await client.edit_message_text(message.chat.id, message.id, translation)
@@ -113,16 +109,10 @@ async def run_py(client, message):
         await client.edit_message_text(message.chat.id, message.id, str(e))
 
 
-@Client.on_message(filters.command('abuser_on') & filters.me)
-async def run_abuser(client, message):
-    client.abuser_on = True
-    await client.send_message("me", "abuser enabled")
-
-
-@Client.on_message(filters.command('abuser_off') & filters.me)
-async def stop_abuser(client, message):
-    client.abuser_on = False
-    await client.send_message("me", "abuser disabled")
+@Client.on_message(filters.command('abuser') & filters.me)
+async def abuser(client, message):
+    client.abuser_on = not client.abuser_on
+    await message.reply(f"abuser {'disabled' if not client.abuser_on else 'enabled'}")
 
 
 @Client.on_message(not_me)
@@ -179,29 +169,38 @@ async def send_voice(client, message):
         add_to_my_messages(client, msg)
 
 
-@Client.on_message(filters.command(LAN_CODES) & filters.me)
+@Client.on_message(filters.command('tr') & filters.me)
 async def translate_message(client, message):
-    command_1 = message.command[0]
-    command_2 = message.command[1]
-    if len(message.command) > 2:
-        command_3 = message.text.replace('/', '').replace(command_1, '').replace(command_2, '')
-        try:
-            translation = client.translator.translate(command_3, src=command_1, dest=command_2).text
-        except Exception as e:
-            translation = 'exception'
-    elif message.reply_to_message:
-        translation = client.translator.translate(message.reply_to_message.text, src=command_1, dest=command_2).text
-    else:
-        await message.delete()
-        return
-    await client.edit_message_text(message.chat.id, message.id, translation)
+    command_len = len(message.command)
+    from_lang = message.command[1]
+
+    if from_lang not in client.lang_codes:
+        message.reply(f"language {from_lang} not recognized")
+
+    try:
+        translation = ''
+        if command_len > 3:
+            to_lang = message.command[2]
+            if to_lang not in client.lang_codes:
+                message.reply(f"language {to_lang} not recognized")
+
+            text = message.text.replace('/', '').replace(from_lang, '').replace(to_lang, '').replace('tr', '')
+            translation = client.translator.translate(text, src=from_lang, dest=to_lang).text
+        elif message.reply_to_message and command_len == 3:
+            to_lang = message.command[2]
+            translation = client.translator.translate(message.reply_to_message.text, src=from_lang, dest=to_lang).text
+
+        await client.edit_message_text(message.chat.id, message.id, translation)
+
+    except Exception as e:
+        pass
 
 
 @Client.on_message(filters.command('autotranslate') & filters.me)
 async def autotranslate(client, message):
     if len(message.command) > 1:
         lang = message.command[1]
-        if message.command[1] in LAN_CODES:
+        if message.command[1] in client.lang_codes:
             client.autotranslate = lang
             msg = await message.reply(f"translation to {lang} enabled")
         else:
@@ -229,4 +228,26 @@ async def send_info(client, message):
 @Client.on_message(filters.command('openai') & filters.me)
 async def ask_openai(client, message):
     client.ask_openai = not client.ask_openai
-    await message.reply("OpenAI enabled")
+    msg = await message.reply(f"OpenAI {'enabled' if client.ask_openai else 'disabled'}")
+    add_to_my_messages(client, msg)
+
+
+def make_readable_list(l):
+    return ", \n".join(['\t\t\t\t' + str(i) for i in l])
+
+
+@Client.on_message(filters.command('get_config') & filters.me)
+async def get_config(client, message):
+    result = 'ConfigList:\n\n'
+    result += f"\t\t\t\tabuser_on: {client.abuser_on}\n"
+    result += f"\t\t\t\tautotranslate: {client.autotranslate}\n"
+    result += f"\t\t\t\task_openai: {client.ask_openai}\n"
+    result += f"\t\t\t\tlang_codes: {', '.join(client.lang_codes)}"
+    result += "\n\n"
+    result += f'Source chats: [\n{make_readable_list(client.source_chats)}\n]'
+    result += "\n\n"
+    result += f'Target chats: [\n{make_readable_list(client.target_chats)}\n]'
+    result += "\n\n"
+    result += f'White list: [\n{make_readable_list(client.whitelist)}\n]'
+    msg = await message.reply(result, disable_web_page_preview=True)
+    add_to_my_messages(client, msg)

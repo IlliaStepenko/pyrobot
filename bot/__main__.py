@@ -9,7 +9,11 @@ from toolbot import ToolBot
 
 async def main(bot=None):
 
-    openai.api_key = os.environ.get('OPENAI', None)
+    try:
+        from local_config import LocalConfig
+        openai.api_key = LocalConfig.OPEN_AI_KEY
+    except:
+        openai.api_key = os.environ.get('OPENAI', None)
 
     await bot.calculate_target_source()
     await bot.start()

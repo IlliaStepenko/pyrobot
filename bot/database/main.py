@@ -32,6 +32,10 @@ class AsyncDataSource:
         sql = '''SELECT * FROM public."WhiteList";'''
         return await self.pool.fetch(sql)
 
+    async def get_config(self):
+        sql = ''' SELECT * FROM public."BotConfig"'''
+        return await self.pool.fetch(sql)
+
     async def close(self):
         pass
        

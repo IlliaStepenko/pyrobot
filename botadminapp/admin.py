@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from botadminapp.models import WhiteList, SourceChats, TargetChats
+from botadminapp.models import WhiteList, SourceChats, TargetChats, BotConfig
 
 
 class BaseChatAdmin(admin.ModelAdmin):
@@ -20,3 +20,8 @@ class SourceChatAdmin(BaseChatAdmin):
 @admin.register(TargetChats)
 class TargetChatsAdmin(BaseChatAdmin):
     pass
+
+
+@admin.register(BotConfig)
+class BotConfigAdmin(admin.ModelAdmin):
+    list_display = ('name',)

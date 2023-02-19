@@ -8,6 +8,7 @@ from database.main import AsyncDataSource
 
 
 class ToolBot(Client):
+    DEFAULT_LANG_CODES = ["en", "ru", "pl", "uk", "de", "it"]
 
     def __init__(self):
 
@@ -17,6 +18,8 @@ class ToolBot(Client):
             from config import Config as bot_config
 
         self.data_source = AsyncDataSource()
+        self.translator = Translator()
+
         self.last_media_group = None
 
         self.abuser_on = True
@@ -25,10 +28,12 @@ class ToolBot(Client):
         self.target_chats = []
         self.whitelist = []
         self.my_messages = dict()
+
         self.autotranslate = None
-        self.translator = Translator()
         self.ask_openai = False
         self.ai = openai.Completion
+
+        self.lang_codes = self.DEFAULT_LANG_CODES.copy()
 
         super().__init__(
             session_string=bot_config.SESSION,
@@ -42,7 +47,12 @@ class ToolBot(Client):
         )
 
     async def calculate_target_source(self):
+        config = await self.data_source.get_config()
+        config = config[0]
+        self.abuser_on = config['abuser_on']
+        self.autotranslate = config['autotranslate_lang'] if config['autotranslate'] else None
+        self.ask_openai = config['ask_open_ai']
+        self.lang_codes = config['used_languages'].replace(' ', '').split(',')
         self.source_chats = [chat[1] for chat in await self.data_source.get_source_chats() if chat[3]]
         self.target_chats = [chat[1] for chat in await self.data_source.get_target_chats() if chat[3]]
         self.whitelist = [item[1].strip() for item in await self.data_source.get_white_list()]
-
