@@ -281,6 +281,6 @@ async def set_config(client, message):
 
     for k, v in dct.items():
         if hasattr(client, k):
-            setattr(k, v)
+            setattr(k, v, None)
 
     await get_config(client, message)
