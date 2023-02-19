@@ -24,8 +24,6 @@ except ImportError:
     ADD_TO_MIDDLEWARE = []
 
 
-
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
 ALLOWED_HOSTS = ['toolsbotins.herokuapp.com', '127.0.0.1']
@@ -39,6 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'constance.backends.database',
+    'constance',
     'botadminapp',
 ]
 
@@ -120,3 +120,9 @@ STATIC_ROOT = BASE_DIR / "static"
 STATIC_URL = "static/"
 
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
+
+CONSTANCE_CONFIG = {
+    'THE_ANSWER': (42, 'Answer to the Ultimate Question of Life, '
+                       'The Universe, and Everything'),
+}
