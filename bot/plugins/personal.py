@@ -273,11 +273,11 @@ async def get_config_c(client, message):
 
 @Client.on_message(filters.command('set_ai_config') & filters.me)
 async def set_config(client, message):
-    text = "{" + message.text + "}"
+    text = "{" + message.text.replace('/set_ai_config','') + "}"
     try:
         dct = json.loads(text)
     except Exception as e:
-        message.reply(str(e))
+        await message.reply(str(e))
 
     for k, v in dct.items():
         if hasattr(client, k):
