@@ -1,6 +1,5 @@
 import os
 from pathlib import Path
-from pathlib import Path
 import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -13,6 +12,7 @@ try:
 
     SECRET_KEY = SECRET_KEY
     DATABASES = DATABASES
+    ADD_TO_MIDDLEWARE = []
 
 except ImportError:
     SECRET_KEY = os.environ.get('DJANGO_SECRET', None)
@@ -21,9 +21,12 @@ except ImportError:
         conn_max_age=600,
         conn_health_checks=True,
     )
+    ADD_TO_MIDDLEWARE = []
+
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['toolsbotins.herokuapp.com', '127.0.0.1']
 
@@ -41,14 +44,13 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
-
 
 ROOT_URLCONF = 'botadmin.urls'
 
@@ -113,5 +115,7 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-PROJECT_ROOT = os.path.dirname(Path(os.path.abspath(__file__)).parent.absolute())
-STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static')
+STATIC_ROOT = BASE_DIR / "static"
+STATIC_URL = "static/"
+
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
