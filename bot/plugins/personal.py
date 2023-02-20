@@ -104,7 +104,7 @@ async def delete_all_message(client, message):
 
 @Client.on_message(filters.command('py') & filters.me)
 async def run_py(client, message):
-    python_text = message.text.replace('/py', '').replace("\xc2\xa0", " ")
+    python_text = message.text.replace('/py', '')
 
     old_buffer = sys.stdout
     try:
