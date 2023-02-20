@@ -53,6 +53,12 @@ async def check_spam(chat_id, chat_username, message_text, whitelist=None):
 
 @Client.on_message(filters.me & filters.command(['rects']))
 async def recalculate_target_source(client, message):
+    config = await client.data_source.get_config()
+    config = config[0]
+    client.abuser_on = config['abuser_on']
+    client.autotranslate = config['autotranslate_lang'] if config['autotranslate'] else None
+    client.ask_openai = config['ask_open_ai']
+    client.lang_codes = config['used_languages'].replace(' ', '').split(',')
     client.source_chats = [chat[1] for chat in await client.data_source.get_source_chats() if chat[3]]
     client.target_chats = [chat[1] for chat in await client.data_source.get_target_chats() if chat[3]]
     client.whitelist = [item[1].strip() for item in await client.data_source.get_white_list()]
