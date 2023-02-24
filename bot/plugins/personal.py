@@ -1,73 +1,18 @@
-import json
-
-from pyrogram.enums import MessageEntityType
-from gtts import gTTS
-from io import BytesIO
-import asyncio
-import datetime
 import io
 import sys
+import json
+import asyncio
+
+from emoji import unicode_codes
+from gtts import gTTS
+from io import BytesIO
 from pyrogram import filters, Client
 from pyrogram import enums
+from pyrogram.enums import MessageEntityType
 
-
-def make_readable_list(l):
-    return ", \n".join(['\t\t\t\t' + str(i) for i in l])
-
-
-def extract_value(val):
-    return val[0] if isinstance(val, tuple) else val
-
-
-def add_to_my_messages(client, message):
-    chat_id = message.chat.id
-    if not client.my_messages.get(chat_id, []):
-        client.my_messages.update({chat_id: []})
-    client.my_messages[chat_id].append(message.id)
-
-
-async def not_me_filter(_, __, m):
-    return m.chat.id in (-1001162926553, -1001520738007) and not bool(
-        m.from_user and m.from_user.is_self or getattr(m, "outgoing", False))
-
+from .utils import add_to_my_messages, delete_all, extract_value, make_readable_list, not_me_filter, create_sticker
 
 not_me = filters.create(not_me_filter)
-
-
-async def delete_all(client, message, mode='cch'):
-    LIMIT = 50
-    offset = 0
-    has_messages = True
-    chat_id = message.chat.id
-    await message.delete()
-
-    if mode == 'srv':
-        while has_messages:
-            chat_messages = []
-            async for message in client.search_messages(chat_id=chat_id, from_user='me', offset=offset, limit=LIMIT):
-                chat_messages.append(message.id)
-            await client.delete_messages(chat_id=chat_id, message_ids=chat_messages)
-            offset += 50
-            has_messages = bool(chat_messages)
-    else:
-        cached_ids = client.my_messages.get(chat_id, [])
-        if cached_ids:
-            await client.delete_messages(chat_id=chat_id, message_ids=cached_ids)
-            if len(client.my_messages.get(chat_id, [])) > 50:
-                cached_ids.clear()
-        else:
-            while has_messages:
-                chat_messages = []
-                async for message in client.search_messages(chat_id=chat_id, from_user='me', offset=offset,
-                                                            limit=LIMIT):
-                    chat_messages.append(message.id)
-                await client.delete_messages(chat_id=chat_id, message_ids=chat_messages)
-                offset += 50
-                has_messages = bool(chat_messages)
-
-    result_string = f"Удаление ВСЕХ сообщений из чата {chat_id} в {datetime.datetime.now()}"
-
-    await client.send_message("me", result_string)
 
 
 @Client.on_message(filters.me)
@@ -104,7 +49,7 @@ async def delete_all_message(client, message):
 
 @Client.on_message(filters.command('py') & filters.me)
 async def run_py(client, message):
-    python_text = message.text.replace('/py', '')
+    python_text = message.text.replace('/py', '').replace("\xc2\xa0", " ")
 
     old_buffer = sys.stdout
     try:
@@ -273,7 +218,7 @@ async def get_config_c(client, message):
 
 @Client.on_message(filters.command('set_ai_config') & filters.me)
 async def set_config(client, message):
-    text = "{" + message.text.replace('/set_ai_config','') + "}"
+    text = "{" + message.text.replace('/set_ai_config', '') + "}"
     try:
         dct = json.loads(text)
     except Exception as e:
@@ -284,3 +229,49 @@ async def set_config(client, message):
             setattr(client, k, v)
 
     await get_config(client, message)
+
+
+@Client.on_message(filters.command('create_sticker') & filters.me)
+async def create_sticker_command(client, message):
+    if not message.reply_to_message:
+        await message.reply("You must reply message for create sticker")
+        return
+
+    message_text = message.reply_to_message.text
+    message_date = message.reply_to_message.date
+    first_name = ''
+    last_name = ''
+    try:
+        first_name = message.reply_to_message.from_user.first_name
+    except Exception:
+        pass
+
+    try:
+        last_name = message.reply_to_message.from_user.last_name
+    except Exception:
+        pass
+
+    user_avatar_photo = message.reply_to_message.from_user.photo
+
+    user_avatar = None
+    if user_avatar_photo:
+        user_avatar = await client.download_media(message.reply_to_message.from_user.photo.small_file_id, in_memory=True)
+
+    try:
+        e = list(unicode_codes.get_emoji_unicode_dict('en').values())
+        as_byte_buffer = create_sticker(first_name, last_name, message_text, message_date, avatar=user_avatar)
+        as_byte_buffer.name = 'asdasda'
+        await client.send_sticker(message.chat.id, as_byte_buffer)
+
+        # msg = await client.send_photo(chat_id=message.chat.id, photo=as_byte_buffer)
+
+
+        # add_to_my_messages(client, msg)
+
+    finally:
+        pass
+
+
+@Client.on_message(filters.command('add_sticker') & filters.me)
+def add_sticker_to_me(client, message):
+    client.send_message()
