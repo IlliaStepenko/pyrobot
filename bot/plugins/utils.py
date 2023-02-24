@@ -23,7 +23,7 @@ def draw_name(image, name, font, offset_x=0, offset_y=0):
 def draw_text(image, font, offset_x=0, offset_y=0, text=''):
     with Pilmoji(image) as pilmoji:
         for i, line in enumerate(text):
-            pilmoji.text((offset_x + 35, 35 + 28 * (i + 1)), line, 'black', font=font, emoji_position_offset=(0, -5))
+            pilmoji.text((offset_x + 35, 35 + 28 * (i + 1)), line, 'black', font=font, emoji_position_offset=(0, 0))
 
 
 def prepare_text(text):
@@ -54,7 +54,7 @@ def create_sticker(first_name, last_name, text, date, avatar=None):
     header_filename = base_image_path.joinpath('template_head.png')
     body_filename = base_image_path.joinpath('template_body.png')
     rounded_filename = base_image_path.joinpath('rounded.png')
-    font_path = base_image_path.joinpath('lg.ttf')
+    font_path = base_image_path.joinpath('microsoftsansserif.ttf')
     font = ImageFont.truetype(str(font_path), 28, encoding="unic")
     time_font = ImageFont.truetype(str(font_path), 18, encoding="unic")
 
