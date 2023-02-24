@@ -1,4 +1,5 @@
 import io
+import random
 import sys
 import json
 import asyncio
@@ -255,7 +256,8 @@ async def create_sticker_command(client, message):
 
     user_avatar = None
     if user_avatar_photo:
-        user_avatar = await client.download_media(message.reply_to_message.from_user.photo.small_file_id, in_memory=True)
+        user_avatar = await client.download_media(message.reply_to_message.from_user.photo.small_file_id,
+                                                  in_memory=True)
 
     try:
         e = list(unicode_codes.get_emoji_unicode_dict('en').values())
@@ -263,15 +265,23 @@ async def create_sticker_command(client, message):
         as_byte_buffer.name = 'asdasda'
         await client.send_sticker(message.chat.id, as_byte_buffer)
 
-        # msg = await client.send_photo(chat_id=message.chat.id, photo=as_byte_buffer)
-
-
-        # add_to_my_messages(client, msg)
-
     finally:
         pass
 
 
 @Client.on_message(filters.command('add_sticker') & filters.me)
-def add_sticker_to_me(client, message):
-    client.send_message()
+async def add_sticker_to_me(client, message):
+    e = list(unicode_codes.get_emoji_unicode_dict('en').values())
+    if not message.reply_to_message:
+        await message.reply("You must reply message for create sticker")
+        return
+
+    await client.send_message(429000, '/addsticker')
+    await asyncio.sleep(0.3)
+    await client.send_message(429000, 'stickertestbot111')
+    await asyncio.sleep(0.3)
+    await client.forward_messages(chat_id=429000, from_chat_id=message.reply_to_message.chat.id, message_ids=[message.reply_to_message.id])
+    await asyncio.sleep(0.3)
+    await client.send_message(429000, e[random.randint(0, len(e))])
+    await asyncio.sleep(0.3)
+    await client.send_message(429000, '/done')
