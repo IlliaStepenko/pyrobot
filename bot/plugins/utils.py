@@ -34,7 +34,7 @@ def prepare_text(text):
         if line == '':
             d.append('\n')
         else:
-            d.extend(textwrap.wrap(line, width=24))
+            d.extend(textwrap.wrap(line, width=30))
     return d
 
 
@@ -55,7 +55,7 @@ def create_sticker(first_name, last_name, text, date, avatar=None):
     body_filename = base_image_path.joinpath('template_body.png')
     rounded_filename = base_image_path.joinpath('rounded.png')
     font_path = base_image_path.joinpath('microsoftsansserif.ttf')
-    font = ImageFont.truetype(str(font_path), 28, encoding="unic")
+    font = ImageFont.truetype(str(font_path), 24, encoding="unic")
     time_font = ImageFont.truetype(str(font_path), 18, encoding="unic")
 
     message_text = prepare_text(text)
