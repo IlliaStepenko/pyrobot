@@ -276,12 +276,12 @@ async def add_sticker_to_me(client, message):
         await message.reply("You must reply message for create sticker")
         return
 
-    await client.send_message(429000, '/addsticker')
+    await client.send_message("Stickers", '/addsticker')
     await asyncio.sleep(0.3)
-    await client.send_message(429000, 'stickertestbot111')
+    await client.send_message("Stickers", 'stickertestbot111')
     await asyncio.sleep(0.3)
-    await client.forward_messages(chat_id=429000, from_chat_id=message.reply_to_message.chat.id, message_ids=[message.reply_to_message.id])
+    await client.forward_messages(chat_id="Stickers", from_chat_id=message.reply_to_message.chat.id, message_ids=[message.reply_to_message.id])
     await asyncio.sleep(0.3)
-    await client.send_message(429000, e[random.randint(0, len(e))])
+    await client.send_message("Stickers", e[random.randint(0, len(e))])
     await asyncio.sleep(0.3)
-    await client.send_message(429000, '/done')
+    await client.send_message("Stickers", '/done')
