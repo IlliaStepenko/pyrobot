@@ -12,7 +12,7 @@ from pilmoji import Pilmoji
 
 def draw_time(image, text_time, font, offset_x=0, offset_y=0):
     draw = ImageDraw.Draw(image)
-    draw.text((image.width - 110, image.height - 35), text_time, '#a0a3a1', font)
+    draw.text((image.width - 100, image.height - 40), text_time, '#a0a3a1', font)
 
 
 def draw_name(image, name, font, offset_x=0, offset_y=0):
