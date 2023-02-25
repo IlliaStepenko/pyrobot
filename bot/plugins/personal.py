@@ -193,6 +193,7 @@ async def get_config(client, message):
     result += f"\t\t\t\tabuser_on: {extract_value(client.abuser_on)}\n"
     result += f"\t\t\t\tautotranslate: {extract_value(client.autotranslate)}\n"
     result += f"\t\t\t\task_openai: {extract_value(client.ask_openai)}\n"
+    result += f"\t\t\t\ttarget_stickerpack: {extract_value(client.target_stickerpack)}\n"
     result += f"\t\t\t\tlang_codes: {', '.join(client.lang_codes)}\n"
 
     result += f"\t\t\t\tnn_model: {extract_value(client.nn_model)}\n"
@@ -279,7 +280,7 @@ async def add_sticker_to_me(client, message):
 
     await client.send_message("Stickers", '/addsticker')
     await asyncio.sleep(0.3)
-    await client.send_message("Stickers", 'stickertestbot111')
+    await client.send_message("Stickers", client.target_stickerpack)
     await asyncio.sleep(0.3)
     if message.reply_to_message.text is None and message.reply_to_message.photo:
         file = await client.download_media(message.reply_to_message.photo.file_id, in_memory=True)

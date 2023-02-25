@@ -32,6 +32,8 @@ class ToolBot(Client):
         self.autotranslate = None
         self.ask_openai = False
         self.ai = openai.Completion
+        self.target_stickerpack = 'stickertestbot111'
+
 
         self.lang_codes = self.DEFAULT_LANG_CODES.copy()
         self.nn_model = "text-davinci-003",
