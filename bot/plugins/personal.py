@@ -277,21 +277,25 @@ async def add_sticker_to_me(client, message):
         return
 
     e = list(unicode_codes.get_emoji_unicode_dict('en').values())
-
     await client.send_message("Stickers", '/addsticker')
     await asyncio.sleep(0.3)
     await client.send_message("Stickers", client.target_stickerpack)
     await asyncio.sleep(0.3)
-    if message.reply_to_message.text is None and message.reply_to_message.photo:
-        file = await client.download_media(message.reply_to_message.photo.file_id, in_memory=True)
+    if message.reply_to_message.text is None and (message.reply_to_message.photo or (
+            message.reply_to_message.animation and message.reply_to_message.animation.thumbs)):
+        file_id = message.reply_to_message.photo.file_id if message.reply_to_message.photo else \
+        message.reply_to_message.animation.thumbs[0].file_id
+
+        file = await client.download_media(file_id, in_memory=True)
         image = Image.open(file)
         image_content = BytesIO()
-        image.show()
+
         if image.width > image.height:
             new_size = (512, int(image.height * (512 / image.width)))
         else:
             new_size = (int(image.width * (512 / image.height)), 512)
         image = image.resize(new_size, Image.Resampling.LANCZOS)
+
         image.seek(0)
         image.save(image_content, format='PNG')
         image_content.seek(0)
