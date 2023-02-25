@@ -10,7 +10,7 @@ from io import BytesIO
 from pyrogram import filters, Client
 from pyrogram import enums
 from pyrogram.enums import MessageEntityType
-
+from PIL import Image
 from .utils import add_to_my_messages, delete_all, extract_value, make_readable_list, not_me_filter, create_sticker
 
 not_me = filters.create(not_me_filter)
@@ -271,16 +271,34 @@ async def create_sticker_command(client, message):
 
 @Client.on_message(filters.command('add_sticker') & filters.me)
 async def add_sticker_to_me(client, message):
-    e = list(unicode_codes.get_emoji_unicode_dict('en').values())
     if not message.reply_to_message:
         await message.reply("You must reply message for create sticker")
         return
+
+    e = list(unicode_codes.get_emoji_unicode_dict('en').values())
 
     await client.send_message("Stickers", '/addsticker')
     await asyncio.sleep(0.3)
     await client.send_message("Stickers", 'stickertestbot111')
     await asyncio.sleep(0.3)
-    await client.forward_messages(chat_id="Stickers", from_chat_id=message.reply_to_message.chat.id, message_ids=[message.reply_to_message.id])
+    if message.reply_to_message.text is None and message.reply_to_message.photo:
+        file = await client.download_media(message.reply_to_message.photo.file_id, in_memory=True)
+        image = Image.open(file)
+        image_content = BytesIO()
+        image.show()
+        if image.width > image.height:
+            new_size = (512, int(image.height * (512 / image.width)))
+        else:
+            new_size = (int(image.width * (512 / image.height)), 512)
+        image = image.resize(new_size, Image.Resampling.LANCZOS)
+        image.seek(0)
+        image.save(image_content, format='PNG')
+        image_content.seek(0)
+        image_content.name = 'test123'
+        await client.send_sticker("Stickers", image_content)
+    else:
+        await client.forward_messages(chat_id="Stickers", from_chat_id=message.reply_to_message.chat.id,
+                                      message_ids=[message.reply_to_message.id])
     await asyncio.sleep(0.3)
     await client.send_message("Stickers", e[random.randint(0, len(e))])
     await asyncio.sleep(0.3)

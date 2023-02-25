@@ -1,11 +1,10 @@
 import os
 import textwrap
 import datetime
-import emoji
 from io import BytesIO
 from pathlib import Path
 from PIL import ImageDraw, ImageFont, ImageOps, Image
-from emoji import unicode_codes
+
 
 from pilmoji import Pilmoji
 
@@ -90,8 +89,6 @@ def create_sticker(first_name, last_name, text, date, avatar=None):
     draw_text(result_img, font=font, offset_x=OFFSET_X, text=message_text)
     draw_time(result_img, font=time_font, text_time=str_date)
     result_img.paste(output, (10, result_img.height - 65), mask=output)
-
-    result_img.resize((512, 512), Image.Resampling.LANCZOS)
 
     image_content = BytesIO()
     result_img.seek(0)
