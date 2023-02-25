@@ -41,6 +41,7 @@ a {
     min-width: 200px;
     background: #ebebeb;
     position: relative;
+    padding: 15px;
     -moz-border-radius: 10px 10px 10px 0px;
     -webkit-border-radius: 10px 10px 10px 0px;
     border-radius: 10px 10px 10px 0px;
