@@ -9,10 +9,12 @@ from pathlib import Path
 from emoji import unicode_codes
 from gtts import gTTS
 from io import BytesIO
+
+from pilmoji import Pilmoji
 from pyrogram import filters, Client
 from pyrogram import enums
 from pyrogram.enums import MessageEntityType
-from PIL import Image
+from PIL import Image, ImageOps, ImageFont
 from .utils import add_to_my_messages, delete_all, extract_value, make_readable_list, not_me_filter, \
     create_sticker_from_message
 
@@ -246,15 +248,41 @@ async def create_sticker_command(client, message):
     username = username + ' ' + message.reply_to_message.from_user.last_name if message.reply_to_message.from_user.last_name else username
     entities = message.reply_to_message.entities
     entities = entities if entities else []
+    base_path = Path(os.path.dirname(os.path.realpath(__file__))).parent.absolute().joinpath('assets')
+
     try:
+        user_avatar_photo = message.reply_to_message.from_user.photo
+
+        user_avatar = None
+        if user_avatar_photo:
+            user_avatar = await client.download_media(message.reply_to_message.from_user.photo.small_file_id,
+                                                      in_memory=True)
+
+        if user_avatar:
+
+            avatar_img = Image.open(user_avatar).convert('RGBA')
+
+        else:
+            splitted = username.split(' ')
+            avatar_img = Image.new('RGBA', (50, 50), color="#36c91c")
+            font = ImageFont.truetype(str(base_path.joinpath('microsoftsansserif.ttf')), 24, encoding="unic")
+            with Pilmoji(avatar_img) as pilmoji:
+                pilmoji.text((12, 12), splitted[0][0] + splitted[1][0] if len(splitted) == 2 else splitted[0][0],
+                             'white', font=font)
+        mask = Image.open(base_path.joinpath('rounded.png')).convert('L')
+        output = ImageOps.fit(avatar_img, mask.size, centering=(0.5, 0.5))
+        output.putalpha(mask)
+        output = output.resize((50, 50), Image.Resampling.LANCZOS)
+        output.save(base_path.joinpath('avatar_tmp.png'))
+
         img = create_sticker_from_message(username, message.reply_to_message.text,
                                           message.reply_to_message.date.strftime("%H:%M"), entities)
         img.name = 'test_sticker'
         await client.send_sticker(message.chat.id, img)
     finally:
-        base_path = Path(os.path.dirname(os.path.realpath(__file__))).parent.absolute().joinpath('assets')
         if os.path.isfile(base_path.joinpath('out.png')):
             os.remove(base_path.joinpath('out.png'))
+            os.remove(base_path.joinpath('avatar_tmp.png'))
 
 
 @Client.on_message(filters.command('add_sticker') & filters.me)
