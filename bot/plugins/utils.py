@@ -1,98 +1,82 @@
 import os
-import textwrap
-import datetime
 from io import BytesIO
+
+import imgkit
+import datetime
 from pathlib import Path
-from PIL import ImageDraw, ImageFont, ImageOps, Image
+
+from PIL import Image
+from pyrogram.enums import MessageEntityType
+
+kitoptions = {
+    "enable-local-file-access": None,
+    'width': 410,
+    'disable-smart-width': '',
+    'encoding': 'utf-8'
+}
+
+rules_list = {
+    MessageEntityType.BOLD: ['<b>', '</b>'],
+    MessageEntityType.ITALIC: ['<i>', '</i>'],
+    MessageEntityType.UNDERLINE: ['<u>', '</u>'],
+    MessageEntityType.STRIKETHROUGH: ['<s>', '</s>'],
+    MessageEntityType.TEXT_LINK: ['<a href="/">', '</a>']
+}
 
 
-from pilmoji import Pilmoji
+def convert_pyrogram_entities_to_rules(entities):
+    return [[entity.offset, entity.offset + entity.length, entity.type] for entity in entities]
 
 
-def draw_time(image, text_time, font, offset_x=0, offset_y=0):
-    draw = ImageDraw.Draw(image)
-    draw.text((image.width - 100, image.height - 40), text_time, '#a0a3a1', font)
+def format_text(string, format_vals=[], ):
+    string = string.replace('\n', '<br>')
+
+    for item in format_vals:
+        insertion = string[item[0]: item[1]]
+        rule = rules_list.get(item[2], None)
+        if rule:
+            insertion = rule[0] + insertion + rule[1]
+            string = string[:item[0]] + insertion + string[item[1]:]
+
+    return string
 
 
-def draw_name(image, name, font, offset_x=0, offset_y=0):
-    with Pilmoji(image) as pilmoji:
-        pilmoji.text((35 + offset_x, 25 + offset_y), name, '#36c91c', font=font)
+def create_sticker_from_message(name, text, time, entities):
+    params = {
+        '[name_text]': name,
+        '[message_text]': text,
+        '[time_text]': time,
+    }
 
+    rules = convert_pyrogram_entities_to_rules(entities)
 
-def draw_text(image, font, offset_x=0, offset_y=0, text=''):
-    with Pilmoji(image) as pilmoji:
-        for i, line in enumerate(text):
-            pilmoji.text((offset_x + 35, 35 + 28 * (i + 1)), line, 'black', font=font, emoji_position_offset=(0, 0))
+    base_path = Path(os.path.dirname(os.path.realpath(__file__))).parent.absolute().joinpath('assets')
 
+    with open(base_path.joinpath('tmp.html'), 'w+', encoding='utf-8') as tmp:
+        with open(base_path.joinpath('index.html'), 'r', encoding='utf-8') as template:
+            template_as_string = template.read()
 
-def prepare_text(text):
-    d = []
-    lines = text.split('\n')
-    for line in lines:
+            for k, v in params.items():
+                ss = format_text(v, rules) if k == '[message_text]' else v
+                template_as_string = template_as_string.replace(k, ss)
 
-        if line == '':
-            d.append('\n')
-        else:
-            d.extend(textwrap.wrap(line, width=30))
-    return d
+            tmp.write(template_as_string)
 
+    imgkit.from_file(str(base_path.joinpath('tmp.html')), str(base_path.joinpath('out.png')), options=kitoptions)
 
-def create_sticker(first_name, last_name, text, date, avatar=None):
-    OFFSET_X = 55
-    OFFSET_Y = 0
+    os.remove(base_path.joinpath('tmp.html'))
 
-    str_date = date.strftime('%H:%M')
+    img = Image.open(base_path.joinpath('out.png'))
 
-    username = ''
-    username = username + first_name if first_name else username
-    username = username + ' ' + last_name if last_name else username
-
-    base_image_path = Path(os.path.dirname(os.path.realpath(__file__))).parent.absolute().joinpath('assets')
-    background_filename = base_image_path.joinpath('background.png')
-    footer_filename = base_image_path.joinpath('template_footer.png')
-    header_filename = base_image_path.joinpath('template_head.png')
-    body_filename = base_image_path.joinpath('template_body.png')
-    rounded_filename = base_image_path.joinpath('rounded.png')
-    font_path = base_image_path.joinpath('microsoftsansserif.ttf')
-    font = ImageFont.truetype(str(font_path), 24, encoding="unic")
-    time_font = ImageFont.truetype(str(font_path), 18, encoding="unic")
-
-    message_text = prepare_text(text)
-    img_hght = (len(message_text) + 1) * 26 if len(message_text) > 1 else 40
-
-    header = Image.open(header_filename).convert("RGBA")
-    footer = Image.open(footer_filename).convert("RGBA")
-    background = Image.open(background_filename).convert("RGBA")
-    body = Image.open(body_filename).convert("RGBA").resize((header.width + 2, img_hght), Image.Resampling.LANCZOS)
-    mask = Image.open(rounded_filename).convert('L')
-
-    if avatar:
-        avatar_img = Image.open(avatar).convert('RGBA')
-
+    if img.width > img.height:
+        new_size = (512, int(img.height * (512 / img.width)))
     else:
-        avatar_img = Image.new('RGBA', (50, 50), color="#36c91c")
-        with Pilmoji(avatar_img) as pilmoji:
-            pilmoji.text((12, 14), first_name[0] + last_name[0], 'white', font=font)
-
-    output = ImageOps.fit(avatar_img, mask.size, centering=(0.5, 0.5))
-    output.putalpha(mask)
-    output = output.resize((50, 50), Image.Resampling.LANCZOS)
-
-    result_img = Image.new('RGBA', (512, 90 + img_hght))
-    result_img.paste(background)
-
-    result_img.paste(header, (7 + OFFSET_X, 10), mask=header)
-    result_img.paste(body, (6 + OFFSET_X, 40), mask=body)
-    result_img.paste(footer, (0 + OFFSET_X, result_img.height - 75), mask=footer)
-
-    draw_name(result_img, username, font=font, offset_x=OFFSET_X, offset_y=OFFSET_Y)
-    draw_text(result_img, font=font, offset_x=OFFSET_X, text=message_text)
-    draw_time(result_img, font=time_font, text_time=str_date)
-    result_img.paste(output, (10, result_img.height - 65), mask=output)
+        new_size = (int(img.width * (512 / img.height)), 512)
+    img = img.resize(new_size, Image.Resampling.LANCZOS)
 
     image_content = BytesIO()
-    result_img.seek(0)
-    result_img.save(image_content, format='PNG')
+    img.seek(0)
+    img.save(image_content, format='PNG')
     image_content.seek(0)
     return image_content
 

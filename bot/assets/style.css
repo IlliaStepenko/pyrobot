@@ -1,0 +1,65 @@
+body {
+    background-image: url("background.png");
+    font-family: sans-serif;
+}
+a {
+    text-decoration: none;
+}
+.avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 16px;
+    position: absolute;
+    bottom: -5px;
+}
+
+#reviews {
+    display: flex;
+    flex-flow: row wrap;
+    position: relative;
+    left: 25px;
+}
+
+.container {
+    display: -webkit-box;
+    position: relative;
+}
+
+.comment {
+    max-width: 320px;
+    flex-basis: 50%;
+    margin-left: 25px;
+    margin-bottom: 25px;
+}
+
+.comment_bubble {
+    padding: 10px 10px 10px 10px;
+    max-width: 470px;
+}
+
+.comment_bubble {
+    background: #ebebeb;
+    position: relative;
+    -moz-border-radius: 10px 10px 10px 0px;
+    -webkit-border-radius: 10px 10px 10px 0px;
+    border-radius: 10px 10px 10px 0px;
+}
+
+.comment_bubble:before {
+    content: "";
+    position: absolute;
+    right: 100%;
+    bottom: 0px;
+    width: 0;
+    height: 0;
+    border-top: 12px solid transparent;
+    border-right: 13px solid #ebebeb;
+    /*border-bottom: 12px solid transparent;*/
+}
+
+.name, .comment_text{
+    padding: 5px;
+}
+.comment_text{
+    margin-top: 10px;
+}

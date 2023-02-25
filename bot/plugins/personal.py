@@ -1,8 +1,10 @@
 import io
+import os
 import random
 import sys
 import json
 import asyncio
+from pathlib import Path
 
 from emoji import unicode_codes
 from gtts import gTTS
@@ -11,7 +13,8 @@ from pyrogram import filters, Client
 from pyrogram import enums
 from pyrogram.enums import MessageEntityType
 from PIL import Image
-from .utils import add_to_my_messages, delete_all, extract_value, make_readable_list, not_me_filter, create_sticker
+from .utils import add_to_my_messages, delete_all, extract_value, make_readable_list, not_me_filter, \
+    create_sticker_from_message
 
 not_me = filters.create(not_me_filter)
 
@@ -239,35 +242,19 @@ async def create_sticker_command(client, message):
         await message.reply("You must reply message for create sticker")
         return
 
-    message_text = message.reply_to_message.text
-    message_date = message.reply_to_message.date
-    first_name = ''
-    last_name = ''
+    username = message.reply_to_message.from_user.first_name
+    username = username + ' ' + message.reply_to_message.from_user.last_name if message.reply_to_message.from_user.last_name else username
+    entities = message.reply_to_message.entities
+    entities = entities if entities else []
     try:
-        first_name = message.reply_to_message.from_user.first_name
-    except Exception:
-        pass
-
-    try:
-        last_name = message.reply_to_message.from_user.last_name
-    except Exception:
-        pass
-
-    user_avatar_photo = message.reply_to_message.from_user.photo
-
-    user_avatar = None
-    if user_avatar_photo:
-        user_avatar = await client.download_media(message.reply_to_message.from_user.photo.small_file_id,
-                                                  in_memory=True)
-
-    try:
-        e = list(unicode_codes.get_emoji_unicode_dict('en').values())
-        as_byte_buffer = create_sticker(first_name, last_name, message_text, message_date, avatar=user_avatar)
-        as_byte_buffer.name = 'asdasda'
-        await client.send_sticker(message.chat.id, as_byte_buffer)
-
+        img = create_sticker_from_message(username, message.reply_to_message.text,
+                                          message.reply_to_message.date.strftime("%H:%M"), entities)
+        img.name = 'test_sticker'
+        await client.send_sticker(message.chat.id, img)
     finally:
-        pass
+        base_path = Path(os.path.dirname(os.path.realpath(__file__))).parent.absolute().joinpath('assets')
+        if os.path.isfile(base_path.joinpath('out.png')):
+            os.remove(base_path.joinpath('out.png'))
 
 
 @Client.on_message(filters.command('add_sticker') & filters.me)
@@ -284,7 +271,7 @@ async def add_sticker_to_me(client, message):
     if message.reply_to_message.text is None and (message.reply_to_message.photo or (
             message.reply_to_message.animation and message.reply_to_message.animation.thumbs)):
         file_id = message.reply_to_message.photo.file_id if message.reply_to_message.photo else \
-        message.reply_to_message.animation.thumbs[0].file_id
+            message.reply_to_message.animation.thumbs[0].file_id
 
         file = await client.download_media(file_id, in_memory=True)
         image = Image.open(file)
