@@ -39,7 +39,7 @@ a {
 }
 
 .comment_bubble {
-    min-width: 200px;
+    min-width: 300px;
     background: #ebebeb;
     position: relative;
     padding: 15px;
