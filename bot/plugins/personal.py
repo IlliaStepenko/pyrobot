@@ -289,7 +289,7 @@ async def create_sticker_command(client, message):
         img = create_sticker_from_message(username, client.name_color, message.reply_to_message.text,
                                           message.reply_to_message.date.strftime("%H:%M"), reply_to, entities)
         img.name = 'test_sticker'
-        await client.send_sticker(message.chat.id, img)
+        await client.send_sticker(message.chat.id, img, reply_to_message_id=message.id)
     finally:
         if os.path.isfile(base_path.joinpath('out.png')):
             os.remove(base_path.joinpath('out.png'))
