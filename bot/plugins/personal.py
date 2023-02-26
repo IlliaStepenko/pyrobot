@@ -4,6 +4,7 @@ import random
 import sys
 import json
 import asyncio
+from datetime import timedelta
 from pathlib import Path
 
 from emoji import unicode_codes
@@ -303,7 +304,7 @@ async def create_sticker_command(client, message):
         output.save(base_path.joinpath('avatar_tmp.png'))
 
         img = create_sticker_from_message(username, client.name_color, message.reply_to_message.text,
-                                          message.reply_to_message.date.strftime("%H:%M"), reply_to, entities)
+                                          (message.reply_to_message.date + timedelta(hours=2)).strftime("%H:%M"), reply_to, entities)
         img.name = 'test_sticker'
         await client.send_sticker(message.chat.id, img, reply_to_message_id=message.id)
     finally:
