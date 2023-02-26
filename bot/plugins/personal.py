@@ -270,7 +270,7 @@ async def create_sticker_command(client, message):
             print("1231")
             r_text = message_r.reply_to_message.text or message_r.reply_to_message.caption
             r_text = r_text.replace('\n', ' ')[:30]
-            r_text = r_text + '...' if len(r_text) > 30 else r_text
+            r_text = r_text if len(r_text) < 30 else r_text + '...'
             reply_to.update({'text': r_text})
 
     username = message.reply_to_message.from_user.first_name
