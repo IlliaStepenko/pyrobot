@@ -41,11 +41,16 @@ def format_text(string, format_vals=[], ):
     return string
 
 
-def create_sticker_from_message(name, text, time, entities):
+def create_sticker_from_message(name, name_color, text, time, reply, entities):
     params = {
+        '[name_color]': name_color,
         '[name_text]': name,
         '[message_text]': text,
         '[time_text]': time,
+        '[display-reply]': 'block' if reply else 'none',
+        '[reply-text]': reply['text'] if reply else None,
+        '[reply-name]': reply['name'] if reply else None
+
     }
 
     rules = convert_pyrogram_entities_to_rules(entities)
@@ -58,7 +63,8 @@ def create_sticker_from_message(name, text, time, entities):
 
             for k, v in params.items():
                 ss = format_text(v, rules) if k == '[message_text]' else v
-                template_as_string = template_as_string.replace(k, ss)
+                if ss:
+                    template_as_string = template_as_string.replace(k, ss)
 
             tmp.write(template_as_string)
 

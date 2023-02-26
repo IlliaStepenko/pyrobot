@@ -66,3 +66,12 @@ a {
 .comment_text{
     margin-top: 10px;
 }
+
+.reply-block{
+    border-left: 3px solid #447e9b;
+    padding-left: 5px;
+    margin-left: 5px;
+    margin-top: 10px;
+    font-size: 18px;
+}
+

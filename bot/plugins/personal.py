@@ -244,6 +244,17 @@ async def create_sticker_command(client, message):
         await message.reply("You must reply message for create sticker")
         return
 
+    message_r = await client.get_messages(message.reply_to_message.chat.id, message.reply_to_message.id)
+    reply_to = None
+
+    if message_r.reply_to_message:
+        reply_to = {}
+        r_name = message_r.reply_to_message.from_user.first_name if message_r.reply_to_message.from_user.first_name else ''
+        r_name = r_name + message_r.reply_to_message.from_user.last_name if message_r.reply_to_message.from_user.last_name else r_name
+        r_text = message_r.reply_to_message.text
+        reply_to.update({'name': r_name})
+        reply_to.update({'text': r_text.replace('\n', ' ')[:30] + '...'})
+
     username = message.reply_to_message.from_user.first_name
     username = username + ' ' + message.reply_to_message.from_user.last_name if message.reply_to_message.from_user.last_name else username
     entities = message.reply_to_message.entities
@@ -275,8 +286,8 @@ async def create_sticker_command(client, message):
         output = output.resize((50, 50), Image.Resampling.LANCZOS)
         output.save(base_path.joinpath('avatar_tmp.png'))
 
-        img = create_sticker_from_message(username, message.reply_to_message.text,
-                                          message.reply_to_message.date.strftime("%H:%M"), entities)
+        img = create_sticker_from_message(username, client.name_color, message.reply_to_message.text,
+                                          message.reply_to_message.date.strftime("%H:%M"), reply_to, entities)
         img.name = 'test_sticker'
         await client.send_sticker(message.chat.id, img)
     finally:
@@ -321,5 +332,3 @@ async def add_sticker_to_me(client, message):
                                       message_ids=[message.reply_to_message.id])
     await asyncio.sleep(0.3)
     await client.send_message("Stickers", e[random.randint(0, len(e))])
-    await asyncio.sleep(0.3)
-    await client.send_message("Stickers", '/done')

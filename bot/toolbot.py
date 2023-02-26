@@ -34,6 +34,7 @@ class ToolBot(Client):
         self.ai = openai.Completion
         self.target_stickerpack = 'stickertestbot111'
 
+        self.name_color = '#1c9916'
 
         self.lang_codes = self.DEFAULT_LANG_CODES.copy()
         self.nn_model = "text-davinci-003",
