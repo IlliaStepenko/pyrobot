@@ -243,23 +243,38 @@ async def create_sticker_command(client, message):
     if not message.reply_to_message:
         await message.reply("You must reply message for create sticker")
         return
-
+    base_path = Path(os.path.dirname(os.path.realpath(__file__))).parent.absolute().joinpath('assets')
     message_r = await client.get_messages(message.reply_to_message.chat.id, message.reply_to_message.id)
     reply_to = None
 
     if message_r.reply_to_message:
-        reply_to = {}
+        reply_to = {'reply_img': False, 'text': 'Фотография'}
         r_name = message_r.reply_to_message.from_user.first_name if message_r.reply_to_message.from_user.first_name else ''
         r_name = r_name + message_r.reply_to_message.from_user.last_name if message_r.reply_to_message.from_user.last_name else r_name
-        r_text = message_r.reply_to_message.text
         reply_to.update({'name': r_name})
-        reply_to.update({'text': r_text.replace('\n', ' ')[:30] + '...'})
+        if message_r.reply_to_message.photo:
+            file_id = ''
+            if hasattr(message_r.reply_to_message.photo, 'small_file_id'):
+                file_id = message_r.reply_to_message.photo.small_file_id
+
+            if hasattr(message_r.reply_to_message.photo, 'file_id'):
+                file_id = message_r.reply_to_message.photo.file_id
+
+            reply_min_img = await client.download_media(file_id, in_memory=True)
+            if reply_min_img:
+                reply_img = Image.open(reply_min_img).convert('RGBA')
+                reply_img.save(base_path.joinpath('reply.png'))
+                reply_to['reply_img'] = True
+
+        if message_r.reply_to_message.text or message_r.reply_to_message.caption:
+            r_text = message_r.reply_to_message.text or message_r.reply_to_message.caption
+            r_text = r_text.replace('\n', ' ')[:30]
+            reply_to.update({'text': r_text + '...' if len(r_text) > 30 else ''})
 
     username = message.reply_to_message.from_user.first_name
     username = username + ' ' + message.reply_to_message.from_user.last_name if message.reply_to_message.from_user.last_name else username
     entities = message.reply_to_message.entities
     entities = entities if entities else []
-    base_path = Path(os.path.dirname(os.path.realpath(__file__))).parent.absolute().joinpath('assets')
 
     try:
         user_avatar_photo = message.reply_to_message.from_user.photo
@@ -270,7 +285,6 @@ async def create_sticker_command(client, message):
                                                       in_memory=True)
 
         if user_avatar:
-
             avatar_img = Image.open(user_avatar).convert('RGBA')
 
         else:
@@ -293,7 +307,12 @@ async def create_sticker_command(client, message):
     finally:
         if os.path.isfile(base_path.joinpath('out.png')):
             os.remove(base_path.joinpath('out.png'))
+
+        if os.path.isfile(base_path.joinpath('avatar_tmp.png')):
             os.remove(base_path.joinpath('avatar_tmp.png'))
+
+        if os.path.isfile(base_path.joinpath('reply.png')):
+            os.remove(base_path.joinpath('reply.png'))
 
 
 @Client.on_message(filters.command('add_sticker') & filters.me)

@@ -20,7 +20,9 @@ rules_list = {
     MessageEntityType.ITALIC: ['<i>', '</i>'],
     MessageEntityType.UNDERLINE: ['<u>', '</u>'],
     MessageEntityType.STRIKETHROUGH: ['<s>', '</s>'],
-    MessageEntityType.TEXT_LINK: ['<a href="/">', '</a>']
+    MessageEntityType.TEXT_LINK: ['<a href="/">', '</a>'],
+    MessageEntityType.MENTION: ['<span style="color:#2ea3d9">', '</span>'],
+    MessageEntityType.BOT_COMMAND: ['<span style="color:#2ea3d9">', '</span>']
 }
 
 
@@ -47,9 +49,10 @@ def create_sticker_from_message(name, name_color, text, time, reply, entities):
         '[name_text]': name,
         '[message_text]': text,
         '[time_text]': time,
-        '[display-reply]': 'block' if reply else 'none',
-        '[reply-text]': reply['text'] if reply else None,
-        '[reply-name]': reply['name'] if reply else None
+        '[display-reply]': '-webkit-box' if reply else 'none',
+        '[reply-text]': reply['text'] if reply and reply else None,
+        '[reply-name]': reply['name'] if reply and reply else None,
+        '[display-reply-image]': 'block' if reply and reply['reply_img'] else 'none'
 
     }
 
@@ -62,9 +65,10 @@ def create_sticker_from_message(name, name_color, text, time, reply, entities):
             template_as_string = template.read()
 
             for k, v in params.items():
-                ss = format_text(v, rules) if k == '[message_text]' else v
-                if ss:
-                    template_as_string = template_as_string.replace(k, ss)
+                if v:
+                    ss = format_text(v, rules) if k == '[message_text]' else v
+                    if ss:
+                        template_as_string = template_as_string.replace(k, ss)
 
             tmp.write(template_as_string)
 

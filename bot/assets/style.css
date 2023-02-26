@@ -3,9 +3,11 @@ body {
     font-family: sans-serif;
     font-size: 22px;
 }
+
 a {
     text-decoration: none;
 }
+
 .avatar {
     width: 32px;
     height: 32px;
@@ -60,14 +62,17 @@ a {
     /*border-bottom: 12px solid transparent;*/
 }
 
-.name, .comment_text{
+.name, .comment_text {
     padding: 5px;
 }
-.comment_text{
+
+.comment_text {
     margin-top: 10px;
 }
 
-.reply-block{
+.reply-block {
+    display: -webkit-box;
+    min-width: 200px;
     border-left: 3px solid #447e9b;
     padding-left: 5px;
     margin-left: 5px;
