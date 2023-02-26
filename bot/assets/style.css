@@ -13,7 +13,7 @@ a {
     height: 32px;
     border-radius: 16px;
     position: absolute;
-    bottom: -5px;
+    bottom: 7px;
 }
 
 #reviews {
@@ -44,7 +44,7 @@ a {
     min-width: 300px;
     background: #ebebeb;
     position: relative;
-    padding: 15px;
+    padding: 15px 15px 10px 15px;
     -moz-border-radius: 10px 10px 10px 0px;
     -webkit-border-radius: 10px 10px 10px 0px;
     border-radius: 10px 10px 10px 0px;
