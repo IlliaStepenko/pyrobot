@@ -332,3 +332,5 @@ async def add_sticker_to_me(client, message):
                                       message_ids=[message.reply_to_message.id])
     await asyncio.sleep(0.3)
     await client.send_message("Stickers", e[random.randint(0, len(e))])
+
+    await message.reply("Added")
