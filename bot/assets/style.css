@@ -13,14 +13,14 @@ a {
     height: 45px;
     border-radius: 16px;
     position: absolute;
-    bottom: 0px;
+    bottom: 20px;
 }
 
 #reviews {
     display: flex;
     flex-flow: row wrap;
     position: relative;
-    left: 25px;
+    left: 30px;
 }
 
 .container {
