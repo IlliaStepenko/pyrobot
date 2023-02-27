@@ -9,11 +9,11 @@ a {
 }
 
 .avatar {
-    width: 32px;
-    height: 32px;
+    width: 45px;
+    height: 45px;
     border-radius: 16px;
     position: absolute;
-    bottom: 7px;
+    bottom: 0px;
 }
 
 #reviews {
