@@ -156,5 +156,7 @@ async def on_new_post(client, message):
     #         await client.send_message("me", f"block duplicate in message_text {message_text}") # remove
     #         return None
 
-    for chat_id in client.target_chats:
-        await client.send_message(chat_id, "Error: could not find source chat.")
+    # for chat_id in client.target_chats:
+    #     await client.send_message(chat_id, "Error: could not find source chat.")
+
+    pass
