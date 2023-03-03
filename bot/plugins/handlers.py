@@ -157,4 +157,4 @@ async def on_new_post(client, message):
     #         return None
 
     for chat_id in client.target_chats:
-        await client.send_message(chat_id, "Error: could not find target source chat.")
+        await client.send_message(chat_id, "Error: could not find source chat.")
