@@ -1,6 +1,7 @@
 import io
 import os
 import random
+import shutil
 import sys
 import json
 import asyncio
@@ -17,7 +18,7 @@ from pyrogram import enums
 from pyrogram.enums import MessageEntityType
 from PIL import Image, ImageOps, ImageFont
 from .utils import add_to_my_messages, delete_all, extract_value, make_readable_list, not_me_filter, \
-    create_sticker_from_message
+     create_html_repr_of_message, create_sticker_from_messages
 
 not_me = filters.create(not_me_filter)
 
@@ -239,87 +240,10 @@ async def set_config(client, message):
     await get_config(client, message)
 
 
-@Client.on_message(filters.command('create_sticker') & filters.me)
-async def create_sticker_command(client, message):
-    if not message.reply_to_message:
-        await message.reply("You must reply message for create sticker")
-        return
-    base_path = Path(os.path.dirname(os.path.realpath(__file__))).parent.absolute().joinpath('assets')
-    message_r = await client.get_messages(message.reply_to_message.chat.id, message.reply_to_message.id)
-    reply_to = None
-
-    if message_r.reply_to_message:
-        reply_to = {'reply_img': False, 'text': 'Фотография'}
-        r_name = message_r.reply_to_message.from_user.first_name if message_r.reply_to_message.from_user.first_name else ''
-        r_name = r_name + message_r.reply_to_message.from_user.last_name if message_r.reply_to_message.from_user.last_name else r_name
-        reply_to.update({'name': r_name})
-        if message_r.reply_to_message.photo:
-            file_id = ''
-            if hasattr(message_r.reply_to_message.photo, 'small_file_id'):
-                file_id = message_r.reply_to_message.photo.small_file_id
-
-            if hasattr(message_r.reply_to_message.photo, 'file_id'):
-                file_id = message_r.reply_to_message.photo.file_id
-
-            reply_min_img = await client.download_media(file_id, in_memory=True)
-            if reply_min_img:
-                reply_img = Image.open(reply_min_img).convert('RGBA')
-                reply_img.save(base_path.joinpath('reply.png'))
-                reply_to['reply_img'] = True
-
-        if message_r.reply_to_message.text or message_r.reply_to_message.caption:
-            r_text = message_r.reply_to_message.text or message_r.reply_to_message.caption
-            r_text = r_text.replace('\n', ' ')[:25]
-            r_text = r_text if len(r_text) < 25 else r_text + '...'
-            reply_to.update({'text': r_text})
-
-    username = message.reply_to_message.from_user.first_name
-    username = username + ' ' + message.reply_to_message.from_user.last_name if message.reply_to_message.from_user.last_name else username
-    entities = message.reply_to_message.entities
-    entities = entities if entities else []
-
-    try:
-        user_avatar_photo = message.reply_to_message.from_user.photo
-
-        user_avatar = None
-        if user_avatar_photo:
-            user_avatar = await client.download_media(message.reply_to_message.from_user.photo.small_file_id,
-                                                      in_memory=True)
-
-        if user_avatar:
-            avatar_img = Image.open(user_avatar).convert('RGBA')
-
-        else:
-            splitted = username.split(' ')
-            avatar_img = Image.new('RGBA', (50, 50), color="#36c91c")
-            font = ImageFont.truetype(str(base_path.joinpath('microsoftsansserif.ttf')), 24, encoding="unic")
-            with Pilmoji(avatar_img) as pilmoji:
-                pilmoji.text((12, 12), splitted[0][0] + splitted[1][0] if len(splitted) == 2 else splitted[0][0],
-                             'white', font=font)
-        mask = Image.open(base_path.joinpath('rounded.png')).convert('L')
-        output = ImageOps.fit(avatar_img, mask.size, centering=(0.5, 0.5))
-        output.putalpha(mask)
-        output = output.resize((50, 50), Image.Resampling.LANCZOS)
-        output.save(base_path.joinpath('avatar_tmp.png'))
-
-        img = create_sticker_from_message(username, client.name_color, message.reply_to_message.text,
-                                          (message.reply_to_message.date + timedelta(hours=2)).strftime("%H:%M"),
-                                          reply_to, entities)
-        img.name = 'test_sticker'
-        await client.send_sticker(message.chat.id, img, reply_to_message_id=message.id)
-    finally:
-        if os.path.isfile(base_path.joinpath('out.png')):
-            os.remove(base_path.joinpath('out.png'))
-
-        if os.path.isfile(base_path.joinpath('avatar_tmp.png')):
-            os.remove(base_path.joinpath('avatar_tmp.png'))
-
-        if os.path.isfile(base_path.joinpath('reply.png')):
-            os.remove(base_path.joinpath('reply.png'))
-
-
 @Client.on_message(filters.command('create_sticker2') & filters.me)
 async def cc_sticker(client, message):
+    messages = []
+
     if '-l' in message.text:
         message_dict = {}
         messages_order = []
@@ -350,6 +274,23 @@ async def cc_sticker(client, message):
 
         messages = tmp
 
+    else:
+        message_r = await client.get_messages(message.chat.id, message_ids=[message.reply_to_message.id])
+        messages.extend(message_r)
+    try:
+        img = await create_sticker_from_messages(client, messages)
+        await client.send_sticker(message.chat.id, img, reply_to_message_id=message.id)
+    finally:
+        folder = str(Path(os.path.dirname(os.path.realpath(__file__))).parent.absolute().joinpath('tmp'))
+        for filename in os.listdir(folder):
+            file_path = os.path.join(folder, filename)
+            try:
+                if os.path.isfile(file_path) or os.path.islink(file_path):
+                    os.unlink(file_path)
+                elif os.path.isdir(file_path):
+                    shutil.rmtree(file_path)
+            except Exception as e:
+                print('Failed to delete %s. Reason: %s' % (file_path, e))
 
 @Client.on_message(filters.command('add_sticker') & filters.me)
 async def add_sticker_to_me(client, message):

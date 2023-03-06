@@ -4,8 +4,10 @@ from io import BytesIO
 import imgkit
 import datetime
 from pathlib import Path
-
-from PIL import Image
+from datetime import timedelta
+from PIL import Image, ImageOps
+from PIL.ImageFont import ImageFont
+from pilmoji import Pilmoji
 from pyrogram.enums import MessageEntityType
 
 kitoptions = {
@@ -43,52 +45,179 @@ def format_text(string, format_vals=[], ):
     return string
 
 
-def create_sticker_from_message(name, name_color, text, time, reply, entities):
-    params = {
-        '[name_color]': name_color,
-        '[name_text]': name,
-        '[message_text]': text,
-        '[time_text]': time,
-        '[display-reply]': '-webkit-box' if reply else 'none',
-        '[reply-text]': reply['text'] if reply and reply else None,
-        '[reply-name]': reply['name'] if reply and reply else None,
-        '[display-reply-image]': 'block' if reply and reply['reply_img'] else 'none'
-
-    }
-
-    rules = convert_pyrogram_entities_to_rules(entities)
-
+async def create_html_repr_of_message(client, message, i, hide_name=False, show_avatar=False):
     base_path = Path(os.path.dirname(os.path.realpath(__file__))).parent.absolute().joinpath('assets')
+    tmp_path = Path(os.path.dirname(os.path.realpath(__file__))).parent.absolute().joinpath('tmp')
+    result = ''
 
-    with open(base_path.joinpath('tmp.html'), 'w+', encoding='utf-8') as tmp:
-        with open(base_path.joinpath('index.html'), 'r', encoding='utf-8') as template:
-            template_as_string = template.read()
+    with open(base_path.joinpath('message_template.html'), 'r', encoding='utf-8') as template:
+        result = template.read()
+        if message.text or message.caption:
+            message_text = ''
 
-            for k, v in params.items():
-                if v:
-                    ss = format_text(v, rules) if k == '[message_text]' else v
-                    if ss:
-                        template_as_string = template_as_string.replace(k, ss)
+            if message.text is not None:
+                message_text = message.text
+            elif message.caption is not None:
+                message_text = message.caption
 
-            tmp.write(template_as_string)
+            message_text = format_text(message_text,
+                                       convert_pyrogram_entities_to_rules(message.entities if message.entities else []))
 
-    imgkit.from_file(str(base_path.joinpath('tmp.html')), str(base_path.joinpath('out.png')), options=kitoptions)
+            result = result.replace('[display-message-text]', 'block').replace('[message-text]', message_text)
+        else:
+            result = result.replace('[display-message-text]', 'none')
 
-    os.remove(base_path.joinpath('tmp.html'))
+        if message.sticker or message.photo:
 
-    img = Image.open(base_path.joinpath('out.png'))
+            file_id = None
+            if message.sticker:
+                file_id = message.sticker.file_id
+            elif message.photo:
+                file_id = message.photo.file_id
 
-    if img.width > img.height:
-        new_size = (512, int(img.height * (512 / img.width)))
-    else:
-        new_size = (int(img.width * (512 / img.height)), 512)
-    img = img.resize(new_size, Image.Resampling.LANCZOS)
+            if file_id:
+                file = await client.download_media(file_id, in_memory=True)
+                inner_image = Image.open(file).convert('RGBA')
+                path_d = tmp_path.joinpath(f'inner_sticker_msg_{i}.png')
 
-    image_content = BytesIO()
-    img.seek(0)
-    img.save(image_content, format='PNG')
-    image_content.seek(0)
-    return image_content
+                inner_image.save(path_d)
+                result = result.replace('[message-image]',
+                                        str(path_d)).replace(
+                    '[display-message-image]', 'block')
+
+
+        else:
+            result = result.replace('[display-message-image]', 'none').replace('[message-image]', '')
+
+        r_text = 'Фотография'
+
+        if message.reply_to_message:
+            reply_to_name = ''
+            if message.reply_to_message.from_user.first_name:
+                reply_to_name += message.reply_to_message.from_user.first_name
+
+            if message.reply_to_message.from_user.last_name:
+                reply_to_name += message.reply_to_message.from_user.last_name
+
+            result = result.replace('[reply-name]', reply_to_name)
+
+            if message.reply_to_message.photo or message.reply_to_message.sticker:
+
+                file_id = ''
+                if message.reply_to_message.photo is not None:
+
+                    if hasattr(message.reply_to_message.photo, 'small_file_id'):
+                        file_id = message.reply_to_message.photo.small_file_id
+
+                    if hasattr(message.reply_to_message.photo, 'file_id'):
+                        file_id = message.reply_to_message.photo.file_id
+
+                elif message.reply_to_message.sticker is not None:
+                    file_id = message.reply_to_message.sticker.file_id
+
+                reply_min_img = await client.download_media(file_id, in_memory=True)
+                if reply_min_img:
+                    reply_img = Image.open(reply_min_img).convert('RGBA')
+                    path = tmp_path.joinpath(f'reply_{i}.png')
+                    reply_img.save(path)
+                    result = result.replace('[reply-image]', str(path))
+                    result = result.replace('[display-reply-image]', 'block')
+                    if message.reply_to_message.caption is None:
+                        result = result.replace('[reply-text]', r_text)
+
+
+            else:
+                result = result.replace('[display-reply-image]', 'none').replace('[reply-image]', '')
+
+            if message.reply_to_message.text or message.reply_to_message.caption:
+                r_text = message.reply_to_message.text or message.reply_to_message.caption
+                r_text = r_text.replace('\n', ' ')[:25]
+                r_text = r_text if len(r_text) < 25 else r_text + '...'
+                result = result.replace('[reply-text]', r_text)
+                result = result.replace('[display-reply-image]', 'block')
+
+            else:
+                result = result.replace('[reply-text]', '')
+
+        else:
+            result = result.replace('[display-reply-image]', 'none').replace('[reply-image]', '').replace(
+                '[display-reply]', 'none')
+
+        username = ''
+        if not hide_name:
+            if message.from_user and message.from_user.first_name:
+                username += message.from_user.first_name
+
+            if message.from_user and message.from_user.last_name:
+                username += ' ' + message.from_user.last_name
+
+        if not show_avatar:
+            result = result.replace('comment_bubble', 'comment_bubble-without-before').replace('[avatar-img]', '')
+
+        else:
+            user_avatar_photo = message.from_user.photo
+
+            user_avatar = None
+            if user_avatar_photo:
+                user_avatar = await client.download_media(message.from_user.photo.small_file_id,
+                                                          in_memory=True)
+
+            if user_avatar:
+                avatar_img = Image.open(user_avatar).convert('RGBA')
+
+            else:
+                splitted = username.split(' ')
+                avatar_img = Image.new('RGBA', (50, 50), color="#36c91c")
+                font = ImageFont.truetype(str(base_path.joinpath('microsoftsansserif.ttf')), 24, encoding="unic")
+                with Pilmoji(avatar_img) as pilmoji:
+                    pilmoji.text((12, 12), splitted[0][0] + splitted[1][0] if len(splitted) == 2 else splitted[0][0],
+                                 'white', font=font)
+            mask = Image.open(base_path.joinpath('rounded.png')).convert('L')
+            output = ImageOps.fit(avatar_img, mask.size, centering=(0.5, 0.5))
+            output.putalpha(mask)
+            output = output.resize((50, 50), Image.Resampling.LANCZOS)
+            output.save(tmp_path.joinpath(f'avatar_tmp_{i}.png'))
+            result = result.replace('[avatar-img]', str(tmp_path.joinpath(f'avatar_tmp_{i}.png')))
+
+        result = result.replace('[name_text]', username)
+        result = result.replace('[time-text]', (message.date + timedelta(hours=2)).strftime("%H:%M"))
+
+    return result
+
+
+async def create_sticker_from_messages(client, messages):
+    base_path = Path(os.path.dirname(os.path.realpath(__file__))).parent.absolute().joinpath('assets')
+    tmp_path = Path(os.path.dirname(os.path.realpath(__file__))).parent.absolute().joinpath('tmp')
+
+    with open(base_path.joinpath('root_template.html'), 'r', encoding='utf-8') as template:
+        base_template = template.read()
+        result = ''
+        for i, message in enumerate(messages):
+            r = await create_html_repr_of_message(client, message, i, i != 0, len(messages) == i + 1)
+            result += '\n' + r
+
+        result = base_template.replace('[sticker-body]', result)
+
+        with open(tmp_path.joinpath('out.html'), 'w+', encoding='utf-8') as out:
+            out.write(result)
+
+        imgkit.from_file(str(tmp_path.joinpath('out.html')), str(tmp_path.joinpath('out.png')), options=kitoptions)
+        img = Image.open(tmp_path.joinpath('out.png'))
+
+        if img.width > img.height:
+            new_size = (512, int(img.height * (512 / img.width)))
+        else:
+            new_size = (int(img.width * (512 / img.height)), 512)
+        img = img.resize(new_size, Image.Resampling.LANCZOS)
+
+        image_content = BytesIO()
+        img.seek(0)
+        img.save(image_content, format='PNG')
+        image_content.seek(0)
+        image_content.name = 'sticker'
+        return image_content
+
+    return '', []
 
 
 async def not_me_filter(_, __, m):

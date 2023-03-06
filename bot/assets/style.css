@@ -16,7 +16,7 @@ a {
     bottom: 16px;
 }
 
-#reviews {
+.reviews {
     display: flex;
     flex-flow: row wrap;
     position: relative;
@@ -26,6 +26,7 @@ a {
 .container {
     display: -webkit-box;
     position: relative;
+    margin-top: 10px;
 }
 
 .comment {
@@ -49,6 +50,17 @@ a {
     -webkit-border-radius: 10px 10px 10px 0px;
     border-radius: 10px 10px 10px 0px;
 }
+
+.comment_bubble-without-before {
+    min-width: 300px;
+    background: #ebebeb;
+    position: relative;
+    padding: 15px 15px 10px 15px;
+    -moz-border-radius: 10px 10px 10px 0px;
+    -webkit-border-radius: 10px 10px 10px 0px;
+    border-radius: 10px 10px 10px 0px;
+}
+
 
 .comment_bubble:before {
     content: "";
