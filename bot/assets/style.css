@@ -26,7 +26,6 @@ a {
 .container {
     display: -webkit-box;
     position: relative;
-    margin-top: 10px;
 }
 
 .comment {
