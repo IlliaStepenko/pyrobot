@@ -303,7 +303,8 @@ async def create_sticker_command(client, message):
         output.save(base_path.joinpath('avatar_tmp.png'))
 
         img = create_sticker_from_message(username, client.name_color, message.reply_to_message.text,
-                                          (message.reply_to_message.date + timedelta(hours=2)).strftime("%H:%M"), reply_to, entities)
+                                          (message.reply_to_message.date + timedelta(hours=2)).strftime("%H:%M"),
+                                          reply_to, entities)
         img.name = 'test_sticker'
         await client.send_sticker(message.chat.id, img, reply_to_message_id=message.id)
     finally:
@@ -315,6 +316,39 @@ async def create_sticker_command(client, message):
 
         if os.path.isfile(base_path.joinpath('reply.png')):
             os.remove(base_path.joinpath('reply.png'))
+
+
+@Client.on_message(filters.command('create_sticker2') & filters.me)
+async def cc_sticker(client, message):
+    if '-l' in message.text:
+        message_dict = {}
+        messages_order = []
+        message_text = message.text.replace('/create_sticker2', '').replace('-l', '').strip().split('\n')
+
+        for link in message_text:
+            c_index = link.find('/c/')
+            chat_message_ids = [int('-100' + entity_id) if i == 0 else int(entity_id) for i, entity_id in
+                                enumerate(link[c_index + 3:].split('/'))]
+            messages_order.append(chat_message_ids)
+
+            tmp = message_dict.setdefault(chat_message_ids[0], [chat_message_ids[1]])
+
+            if chat_message_ids[1] not in tmp:
+                tmp.append(chat_message_ids[1])
+
+        messages = []
+
+        for chat_id, message_id_list in message_dict.items():
+            messages.extend(await client.get_messages(chat_id, message_id_list))
+
+        tmp = []
+
+        for item in messages_order:
+            for m in messages:
+                if m.chat.id == item[0] and m.id == item[1]:
+                    tmp.append(m)
+
+        messages = tmp
 
 
 @Client.on_message(filters.command('add_sticker') & filters.me)
