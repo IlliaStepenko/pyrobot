@@ -275,7 +275,7 @@ async def cc_sticker(client, message):
         messages = tmp
 
     else:
-        message_r = await client.get_messages(message.chat.id, message_ids=[message.reply_to_message.id])
+        message_r = await client.get_messages(message.chat.id, message_ids=[message.id])
         messages.extend(message_r)
     try:
         img = await create_sticker_from_messages(client, messages)

@@ -6,7 +6,7 @@ import datetime
 from pathlib import Path
 from datetime import timedelta
 from PIL import Image, ImageOps
-from PIL.ImageFont import ImageFont
+from PIL import ImageFont
 from pilmoji import Pilmoji
 from pyrogram.enums import MessageEntityType
 
@@ -166,12 +166,19 @@ async def create_html_repr_of_message(client, message, i, hide_name=False, show_
                 avatar_img = Image.open(user_avatar).convert('RGBA')
 
             else:
-                splitted = username.split(' ')
                 avatar_img = Image.new('RGBA', (50, 50), color="#36c91c")
                 font = ImageFont.truetype(str(base_path.joinpath('microsoftsansserif.ttf')), 24, encoding="unic")
+
+                gl = ''
+
+                if message.from_user.first_name is not None:
+                    gl += message.from_user.first_name[0]
+
+                if message.from_user.last_name is not None:
+                    gl += message.from_user.last_name[0]
+
                 with Pilmoji(avatar_img) as pilmoji:
-                    pilmoji.text((12, 12), splitted[0][0] + splitted[1][0] if len(splitted) == 2 else splitted[0][0],
-                                 'white', font=font)
+                    pilmoji.text((12, 12), gl, 'white', font=font)
             mask = Image.open(base_path.joinpath('rounded.png')).convert('L')
             output = ImageOps.fit(avatar_img, mask.size, centering=(0.5, 0.5))
             output.putalpha(mask)
