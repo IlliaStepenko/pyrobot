@@ -240,7 +240,7 @@ async def set_config(client, message):
     await get_config(client, message)
 
 
-@Client.on_message(filters.command('create_sticker2') & filters.me)
+@Client.on_message(filters.command('create_sticker') & filters.me)
 async def cc_sticker(client, message):
     messages = []
 
@@ -275,7 +275,7 @@ async def cc_sticker(client, message):
         messages = tmp
 
     else:
-        message_r = await client.get_messages(message.chat.id, message_ids=[message.id])
+        message_r = await client.get_messages(message.chat.id, message_ids=[message.reply_to_message.id])
         messages.extend(message_r)
     try:
         img = await create_sticker_from_messages(client, messages)
