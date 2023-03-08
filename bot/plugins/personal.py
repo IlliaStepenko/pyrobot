@@ -247,7 +247,7 @@ async def cc_sticker(client, message):
     if '-l' in message.text:
         message_dict = {}
         messages_order = []
-        message_text = message.text.replace('/create_sticker2', '').replace('-l', '').strip().split('\n')
+        message_text = message.text.replace('/create_sticker', '').replace('-l', '').strip().split('\n')
 
         for link in message_text:
             c_index = link.find('/c/')
