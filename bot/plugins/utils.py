@@ -34,15 +34,20 @@ def convert_pyrogram_entities_to_rules(entities):
 
 def format_text(string, format_vals=[], ):
     string = string.replace('\n', '<br>')
-
+    result = ''
+    prev_ind = 0
     for item in format_vals:
         insertion = string[item[0]: item[1]]
         rule = rules_list.get(item[2], None)
         if rule:
             insertion = rule[0] + insertion + rule[1]
-            string = string[:item[0]] + insertion + string[item[1]:]
 
-    return string
+        result += string[prev_ind: item[0]] + insertion
+        prev_ind = item[1]
+
+    result += string[prev_ind:]
+
+    return result
 
 
 async def create_html_repr_of_message(client, message, i, hide_name=False, show_avatar=False):
