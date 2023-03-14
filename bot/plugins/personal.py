@@ -17,8 +17,11 @@ from pyrogram import filters, Client
 from pyrogram import enums
 from pyrogram.enums import MessageEntityType
 from PIL import Image, ImageOps, ImageFont
+from pyrogram.raw.functions.messages import SendMedia
+from pyrogram.raw.types import InputMediaGeoLive, InputGeoPoint, MessageMediaGeoLive
+
 from .utils import add_to_my_messages, delete_all, extract_value, make_readable_list, not_me_filter, \
-     create_html_repr_of_message, create_sticker_from_messages
+    create_html_repr_of_message, create_sticker_from_messages
 
 not_me = filters.create(not_me_filter)
 
@@ -292,6 +295,7 @@ async def cc_sticker(client, message):
             except Exception as e:
                 print('Failed to delete %s. Reason: %s' % (file_path, e))
 
+
 @Client.on_message(filters.command('add_sticker') & filters.me)
 async def add_sticker_to_me(client, message):
     if not message.reply_to_message:
@@ -330,3 +334,42 @@ async def add_sticker_to_me(client, message):
     await client.send_message("Stickers", e[random.randint(0, len(e))])
 
     await message.reply("Added")
+
+
+@Client.on_message(filters.command('set_fake_geo') & filters.me)
+async def set_fake_geo(client, message):
+    lat, long = 0, 0
+    if len(message.command) == 3:
+        lat, long = float(message.command[1]), float(message.command[2])
+    elif len(message.command) == 2 and message.command[1] == 'def':
+        lat, long = client.my_def_lat, client.my_def_long
+
+    client.my_lat = lat
+    client.my_long = long
+    await message.reply(f"your new cord ({lat},{long})")
+
+
+@Client.on_message(filters.command('fake_geo') & filters.me)
+async def send_geo(client, message):
+    commands = message.command
+
+    send_media_params = {}
+    chat_id = -1001520738007
+    if len(commands) == 2:
+        chat_id = int(commands[1])
+    elif len(commands) == 3:
+        chat_id = int(commands[1])
+        send_media_params.update({'reply_to_msg_id': int(commands[2])})
+
+    gp = InputGeoPoint(lat=client.my_lat, long=client.my_long)
+    d = InputMediaGeoLive(geo_point=gp, stopped=False, period=900)
+    peer = await client.resolve_peer(chat_id)
+    await client.invoke(
+        SendMedia(
+            peer=peer,
+            message='',
+            random_id=random.randint(1, 5000),
+            media=d,
+            **send_media_params
+        )
+    )

@@ -33,7 +33,11 @@ class ToolBot(Client):
         self.ask_openai = False
         self.ai = openai.Completion
         self.target_stickerpack = 'stickertestbot111'
+        self.my_def_lat = 50.453067
+        self.my_def_long = 30.449008
 
+        self.my_lat = 50.453067
+        self.my_long = 30.449008
         self.name_color = '#1c9916'
 
         self.lang_codes = self.DEFAULT_LANG_CODES.copy()
@@ -43,7 +47,6 @@ class ToolBot(Client):
         self.top_p = float(1.0),
         self.frequency_penalty = float(0.5),
         self.presence_penalty = float(0.5)
-
 
         super().__init__(
             session_string=bot_config.SESSION,
