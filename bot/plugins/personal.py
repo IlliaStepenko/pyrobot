@@ -60,16 +60,18 @@ async def delete_all_message(client, message):
 
 @Client.on_message(filters.command('py') & filters.me)
 async def run_py(client, message):
-    python_text = message.text.replace('/py', '').replace("\xc2\xa0", " ")
+    python_text = message.text.replace('/py', '')
 
     old_buffer = sys.stdout
     try:
         sys.stdout = new_buffer = io.StringIO()
-        print(f"code: \n{python_text}\n")
+        print(f"code: \n ```{python_text}```\n")
         print("\nresult\n")
         exec(python_text, globals())
         sys.stdout = old_buffer
-        await client.edit_message_text(message.chat.id, message.id, new_buffer.getvalue())
+        await client.edit_message_text(
+            message.chat.id, message.id, new_buffer.getvalue(), parse_mode=enums.ParseMode.MARKDOWN
+        )
     except Exception as e:
         sys.stdout = old_buffer
         await client.edit_message_text(message.chat.id, message.id, str(e))
