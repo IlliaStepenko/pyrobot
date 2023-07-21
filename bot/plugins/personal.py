@@ -5,6 +5,11 @@ import shutil
 import sys
 import json
 import asyncio
+
+import numpy as np
+import speech_recognition as sr
+import soundfile as sf
+
 from datetime import timedelta
 from pathlib import Path
 
@@ -24,6 +29,35 @@ from .utils import add_to_my_messages, delete_all, extract_value, make_readable_
     create_html_repr_of_message, create_sticker_from_messages
 
 not_me = filters.create(not_me_filter)
+
+
+async def sr_t(client, message):
+    folder = str(
+        Path(os.path.dirname(os.path.realpath(__file__))).parent.absolute().parent.absolute().joinpath('downloads'))
+    # try:
+    as_message = False
+    if hasattr(message.reply_to_message, 'voice'):
+        sound = message.reply_to_message.voice
+    if hasattr(message, 'voice'):
+        sound = message.voice
+        as_message = True
+    try:
+        if sound:
+            file = await client.download_media(sound, file_name='to_rec.ogg')
+            data, samplerate = sf.read(file)
+            sf.write('downloads/tmpss.wav', data, samplerate)
+            r = sr.Recognizer()
+            with sr.AudioFile('downloads/tmpss.wav') as source:
+                audio = r.record(source)
+                text = r.recognize_google(audio, language="ru-RU")
+                if as_message:
+                    await message.reply('sr: \n' + text)
+                else:
+                    await client.edit_message_text(message.chat.id, message.id, 'sr: \n' + text)
+
+    finally:
+        if os.path.isdir(folder):
+            shutil.rmtree(folder)
 
 
 @Client.on_message(filters.me)
@@ -97,6 +131,9 @@ async def answer(client, message):
         )
 
         await message.reply(answer['choices'][0]['text'])
+
+    if client.autorecognize_speech and message.reply_to_message and message.reply_to_message.from_user.id == 654009330:
+        await sr_t(client, message)
 
 
 @Client.on_message(filters.command('ai') & filters.me)
@@ -375,3 +412,8 @@ async def send_geo(client, message):
             **send_media_params
         )
     )
+
+
+@Client.on_message(filters.command('sr') & filters.me)
+async def speech_recognition(client, message):
+    await sr_t(client, message)

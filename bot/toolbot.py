@@ -19,7 +19,7 @@ class ToolBot(Client):
 
         self.data_source = AsyncDataSource()
         self.translator = Translator()
-
+        self.autorecognize_speech = True
         self.last_media_group = None
 
         self.abuser_on = True
