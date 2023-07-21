@@ -6,27 +6,24 @@ import sys
 import json
 import asyncio
 
-import numpy as np
 import speech_recognition as sr
 import soundfile as sf
 
-from datetime import timedelta
 from pathlib import Path
 
 from emoji import unicode_codes
 from gtts import gTTS
 from io import BytesIO
 
-from pilmoji import Pilmoji
 from pyrogram import filters, Client
 from pyrogram import enums
 from pyrogram.enums import MessageEntityType
-from PIL import Image, ImageOps, ImageFont
+from PIL import Image
 from pyrogram.raw.functions.messages import SendMedia
-from pyrogram.raw.types import InputMediaGeoLive, InputGeoPoint, MessageMediaGeoLive
+from pyrogram.raw.types import InputMediaGeoLive, InputGeoPoint
 
 from .utils import add_to_my_messages, delete_all, extract_value, make_readable_list, not_me_filter, \
-    create_html_repr_of_message, create_sticker_from_messages
+    create_sticker_from_messages
 
 not_me = filters.create(not_me_filter)
 
