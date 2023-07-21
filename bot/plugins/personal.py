@@ -5,9 +5,9 @@ import shutil
 import sys
 import json
 import asyncio
+import soundfile as sf
 
 import speech_recognition as sr
-import soundfile as sf
 
 from pathlib import Path
 
@@ -31,27 +31,31 @@ not_me = filters.create(not_me_filter)
 async def sr_t(client, message):
     folder = str(
         Path(os.path.dirname(os.path.realpath(__file__))).parent.absolute().parent.absolute().joinpath('downloads'))
-    # try:
     as_message = False
     if hasattr(message.reply_to_message, 'voice'):
-        sound = message.reply_to_message.voice
-    if hasattr(message, 'voice'):
-        sound = message.voice
         as_message = True
-    try:
-        if sound:
-            file = await client.download_media(sound, file_name='to_rec.ogg')
-            data, samplerate = sf.read(file)
-            sf.write('downloads/tmpss.wav', data, samplerate)
-            r = sr.Recognizer()
-            with sr.AudioFile('downloads/tmpss.wav') as source:
-                audio = r.record(source)
-                text = r.recognize_google(audio, language="ru-RU")
-                if as_message:
-                    await message.reply('sr: \n' + text)
-                else:
-                    await client.edit_message_text(message.chat.id, message.id, 'sr: \n' + text)
 
+    if hasattr(message, 'voice'):
+        as_message = False
+
+    try:
+        if as_message:
+            file = await client.download_media(message, file_name='to_rec.ogg')
+        else:
+            file = await client.download_media(message.reply_to_message, file_name='to_rec.ogg')
+
+        data, samplerate = sf.read(file)
+        sf.write('downloads/tmpss.wav', data, samplerate)
+        r = sr.Recognizer()
+        with sr.AudioFile('downloads/tmpss.wav') as source:
+            audio = r.record(source)
+            text = r.recognize_google(audio, language="ru-RU")
+            if as_message:
+                await message.reply('sr: \n' + text)
+            else:
+                await client.edit_message_text(message.chat.id, message.id, 'sr: \n' + text)
+    except Exception as e:
+        print(e)
     finally:
         if os.path.isdir(folder):
             shutil.rmtree(folder)
