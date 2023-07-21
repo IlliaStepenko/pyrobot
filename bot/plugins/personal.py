@@ -54,8 +54,9 @@ async def sr_t(client, message):
                 await message.reply('sr: \n' + text)
             else:
                 await client.edit_message_text(message.chat.id, message.id, 'sr: \n' + text)
+
     except Exception as e:
-        print(e)
+        message.reply(str(e))
     finally:
         if os.path.isdir(folder):
             shutil.rmtree(folder)
