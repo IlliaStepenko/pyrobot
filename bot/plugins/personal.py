@@ -121,36 +121,12 @@ async def abuser(client, message):
 
 @Client.on_message(not_me)
 async def answer(client, message):
-    if client.ask_openai and message.text and message.reply_to_message and message.reply_to_message.from_user.id == 654009330:
-        answer = client.ai.create(
-            model="text-davinci-003",
-            prompt=message.text,
-            temperature=0.5,
-            max_tokens=1000,
-            top_p=1.0,
-            frequency_penalty=0.5,
-            presence_penalty=0.5
-        )
-
-        await message.reply(answer['choices'][0]['text'])
-
-    if client.autorecognize_speech and message.reply_to_message and message.reply_to_message.from_user.id == 654009330:
-        await sr_t(client, message)
-
-
-@Client.on_message(filters.command('ai') & filters.me)
-async def ai(client, message):
-    answer = client.ai.create(
-        model=extract_value(client.nn_model),
-        prompt=message.text,
-        temperature=extract_value(client.temperature),
-        max_tokens=extract_value(client.max_tokens),
-        top_p=extract_value(client.top_p),
-        frequency_penalty=extract_value(client.frequency_penalty),
-        presence_penalty=extract_value(client.presence_penalty)
-    )
-
-    await message.reply(answer['choices'][0]['text'])
+    if client.abuser_on:
+        ANSWERS = ['И все?', 'и что?', 'Ну да', 'Да ну?', 'Неужели']
+        CHAT_ID, TARGET_ID = -1002140296565, 831439708
+        client.counter = (client.counter + 1) % len(ANSWERS)
+        if message.from_user.id == TARGET_ID:
+            await message.reply(ANSWERS[client.counter])
 
 
 @Client.on_message(filters.command('sv') & filters.me)
@@ -230,13 +206,6 @@ async def send_info(client, message):
         await client.send_message("me", info_msg[i * 4000:(i + 1) * 4000])
 
     await client.send_message("me", info_msg[cnt * 4000:])
-
-
-@Client.on_message(filters.command('openai') & filters.me)
-async def ask_openai(client, message):
-    client.ask_openai = not client.ask_openai
-    msg = await message.reply(f"OpenAI {'enabled' if client.ask_openai else 'disabled'}")
-    add_to_my_messages(client, msg)
 
 
 async def get_config(client, message):

@@ -233,7 +233,7 @@ async def create_sticker_from_messages(client, messages):
 
 
 async def not_me_filter(_, __, m):
-    return m.chat.id in (-1001162926553, -1001520738007) and not bool(
+    return m.chat.id in (-1002140296565,) and not bool(
         m.from_user and m.from_user.is_self or getattr(m, "outgoing", False))
 
 

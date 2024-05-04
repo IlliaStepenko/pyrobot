@@ -63,6 +63,7 @@ async def recalculate_target_source(client, message):
     client.source_chats = [chat[1] for chat in await client.data_source.get_source_chats() if chat[3]]
     client.target_chats = [chat[1] for chat in await client.data_source.get_target_chats() if chat[3]]
     client.whitelist = [item[1].strip() for item in await client.data_source.get_white_list()]
+    await message.reply("recalculated")
 
 
 @Client.on_message(filters.channel & filters.create(filter_channel))
