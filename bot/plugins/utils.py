@@ -98,7 +98,7 @@ async def create_html_repr_of_message(client, message, i, hide_name=False, show_
 
         if message.reply_to_message:
             reply_to_name = ''
-            if message.reply_to_message.from_user.first_name:
+            if message.reply_to_message and message.reply_to_message.from_user and message.reply_to_message.from_user.first_name:
                 reply_to_name += message.reply_to_message.from_user.first_name
 
             if message.reply_to_message.from_user.last_name:
