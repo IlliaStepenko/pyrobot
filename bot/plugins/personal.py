@@ -6,7 +6,7 @@ import sys
 import json
 import asyncio
 import soundfile as sf
-
+import time
 import speech_recognition as sr
 
 from pathlib import Path
@@ -125,8 +125,16 @@ async def answer(client, message):
         ANSWERS = ['И все?', 'и что?', 'Ну да', 'Да ну?', 'Неужели']
         CHAT_ID, TARGET_ID = -1002140296565, 831439708
         client.counter = (client.counter + 1) % len(ANSWERS)
-        if message.from_user.id == TARGET_ID:
-            await message.reply(ANSWERS[client.counter])
+
+        time.sleep(1)
+        if hasattr(message, 'sender_chat'):
+            if message.sender_chat and message.sender_chat.id == -1001140635421:
+                await message.reply(ANSWERS[client.counter])
+
+        if message.from_user and message.from_user.id in (409872175, 1364499877, 6592263520, 654009330, 831439708):
+            new_message = await message.reply(ANSWERS[client.counter])
+            time.sleep(4)
+            await client.delete_messages(message.chat.id, new_message.id)
 
 
 @Client.on_message(filters.command('sv') & filters.me)
