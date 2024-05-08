@@ -135,7 +135,7 @@ async def answer(client, message):
         await asyncio.sleep(5)
         if hasattr(message, 'sender_chat'):
             if message.sender_chat and message.sender_chat.id == -1001140635421:
-                new_message = await message.reply('Спасибо')
+                new_message = await message.reply('Спасибо 👍')
                 await client.delete_messages(message.chat.id, new_message.id)
 
         if message.from_user and message.from_user.id in (6592263520, 831439708):
