@@ -120,7 +120,7 @@ async def abuser(client, message):
 
 
 @Client.on_message(filters.command('send_news') & filters.me)
-async def abuser(client, message):
+async def send_news(client, message):
     client.send_news = not client.send_news
     await message.reply(f"abuser {'disabled' if not client.send_news else 'enabled'}")
 
@@ -135,7 +135,7 @@ async def answer(client, message):
         await asyncio.sleep(5)
         if hasattr(message, 'sender_chat'):
             if message.sender_chat and message.sender_chat.id == -1001140635421:
-                new_message = await message.reply(ANSWERS[client.counter])
+                new_message = await message.reply('Спасибо')
                 await client.delete_messages(message.chat.id, new_message.id)
 
         if message.from_user and message.from_user.id in (6592263520, 831439708):
@@ -143,6 +143,11 @@ async def answer(client, message):
             await asyncio.sleep(5)
             if message.from_user.id == 6592263520:
                 await client.delete_messages(message.chat.id, new_message.id)
+
+        if message.from_user and message.from_user.id == 215508624:
+            new_message = await message.reply('Спасибо')
+            await asyncio.sleep(5)
+            await client.delete_messages(message.chat.id, new_message.id)
 
 
 @Client.on_message(filters.command('sv') & filters.me)
