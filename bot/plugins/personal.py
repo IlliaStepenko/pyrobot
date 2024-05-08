@@ -132,11 +132,11 @@ async def answer(client, message):
         CHAT_ID, TARGET_ID = -1002140296565, 831439708
         client.counter = (client.counter + 1) % len(ANSWERS)
 
-        await asyncio.sleep(5)
-        if hasattr(message, 'sender_chat'):
-            if message.sender_chat and message.sender_chat.id == -1001140635421:
-                new_message = await message.reply('Спасибо 👍')
-                await client.delete_messages(message.chat.id, new_message.id)
+        await asyncio.sleep(3)
+        # if hasattr(message, 'sender_chat'):
+        #     if message.sender_chat and message.sender_chat.id == -1001140635421:
+        #         new_message = await message.reply('Спасибо 👍')
+        #         await client.delete_messages(message.chat.id, new_message.id)
 
         # if message.from_user and message.from_user.id in (6592263520, 831439708):
         #     new_message = await message.reply(ANSWERS[client.counter])
@@ -144,7 +144,8 @@ async def answer(client, message):
         #     if message.from_user.id == 6592263520:
         #         await client.delete_messages(message.chat.id, new_message.id)
 
-        if message.from_user and message.from_user.id == 215508624:
+        # if message.from_user and message.from_user.id == 215508624:
+        if message.chat.id == -1001140635421:
             new_message = await message.reply('Спасибо 👍')
             await asyncio.sleep(3)
             await client.delete_messages(message.chat.id, new_message.id)
