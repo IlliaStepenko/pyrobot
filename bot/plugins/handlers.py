@@ -44,7 +44,7 @@ async def filter_channel_2(_, __, query):
     hasnt_button = getattr(query, 'reply_markup', None) is None
     isnt_edited = getattr(query, 'edit_date', None) is None
     return query.chat.id in (
-        -1001220606936, -1001247449131, -1001098515055) and hasnt_button and isnt_edited
+        -1001220606936, -1001247449131, -1001098515055, -1002137191553) and hasnt_button and isnt_edited
 
 
 async def check_spam(chat_id, chat_username, message_text, whitelist=None):
@@ -171,5 +171,17 @@ async def on_new_post(client, message):
 
 @Client.on_message(filters.channel & filters.create(filter_channel_2))
 async def on_new_post_two(client, message):
-    if message.text:
-        await client.send_message(-1001140635421, text=message.text)
+    message_text = ''
+    if hasattr(message, 'sender_chat'):
+        channel_name = message.sender_chat.title
+        if channel_name:
+            message_text += channel_name + '\n\n'
+
+    if hasattr(message, 'text') and message.text is not None:
+        message_text += message.text
+
+    if hasattr(message, 'caption') and message.caption is not None:
+        message_text += '\n'
+        message_text += message.caption
+
+    await client.send_message(-1001140635421, text=message_text)
