@@ -168,6 +168,7 @@ async def on_new_post(client, message):
             for chat_id in client.target_chats:
                 await client.copy_message(chat_id, message.chat.id, message.id)
 
-# @Client.on_message(filters.channel & filters.create(filter_channel_2))
-# async def on_new_post_two(client, message):
-# await client.forward_messages(-1001140635421, from_chat_id=message.chat.id, message_ids=message.id)
+
+@Client.on_message(filters.channel & filters.create(filter_channel_2))
+async def on_new_post_two(client, message):
+    await client.send_message(-1001140635421, text=message.text)
