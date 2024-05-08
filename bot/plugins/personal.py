@@ -146,7 +146,7 @@ async def answer(client, message):
 
         # if message.from_user and message.from_user.id == 215508624:
         if message.chat.id == -1001140635421:
-            new_message = await message.reply('Спасибо 👍')
+            new_message = await message.reply('Спасибо 👍 ' + str(random.randint(1, 10000)))
             await asyncio.sleep(3)
             await client.delete_messages(message.chat.id, new_message.id)
 
