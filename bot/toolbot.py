@@ -21,7 +21,7 @@ class ToolBot(Client):
         self.translator = Translator()
         self.autorecognize_speech = True
         self.last_media_group = None
-
+        self.send_news = False
         self.abuser_on = True
         self.counter = 0
         self.source_chats = []

@@ -119,6 +119,12 @@ async def abuser(client, message):
     await message.reply(f"abuser {'disabled' if not client.abuser_on else 'enabled'}")
 
 
+@Client.on_message(filters.command('send_news') & filters.me)
+async def abuser(client, message):
+    client.send_news = not client.send_news
+    await message.reply(f"abuser {'disabled' if not client.send_news else 'enabled'}")
+
+
 @Client.on_message(not_me)
 async def answer(client, message):
     if client.abuser_on:
