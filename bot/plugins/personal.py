@@ -138,11 +138,11 @@ async def answer(client, message):
                 new_message = await message.reply('Спасибо 👍')
                 await client.delete_messages(message.chat.id, new_message.id)
 
-        if message.from_user and message.from_user.id in (6592263520, 831439708):
-            new_message = await message.reply(ANSWERS[client.counter])
-            await asyncio.sleep(5)
-            if message.from_user.id == 6592263520:
-                await client.delete_messages(message.chat.id, new_message.id)
+        # if message.from_user and message.from_user.id in (6592263520, 831439708):
+        #     new_message = await message.reply(ANSWERS[client.counter])
+        #     await asyncio.sleep(5)
+        #     if message.from_user.id == 6592263520:
+        #         await client.delete_messages(message.chat.id, new_message.id)
 
         if message.from_user and message.from_user.id == 215508624:
             new_message = await message.reply('Спасибо 👍')
