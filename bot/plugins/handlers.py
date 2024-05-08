@@ -44,7 +44,7 @@ async def filter_channel_2(_, __, query):
     hasnt_button = getattr(query, 'reply_markup', None) is None
     isnt_edited = getattr(query, 'edit_date', None) is None
     return query.chat.id in (
-        -1001220606936, -1001247449131, -1001098515055, -1001523454586) and hasnt_button and isnt_edited
+        -1001220606936, -1001247449131, -1001098515055) and hasnt_button and isnt_edited
 
 
 async def check_spam(chat_id, chat_username, message_text, whitelist=None):
@@ -171,4 +171,4 @@ async def on_new_post(client, message):
 
 @Client.on_message(filters.channel & filters.create(filter_channel_2))
 async def on_new_post_two(client, message):
-    await client.forward_messages(-1001140635421, from_chat_id=message.chat.id, message_ids=message.id)
+    await on_new_post(client, message)
