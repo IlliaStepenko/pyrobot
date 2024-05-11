@@ -125,8 +125,20 @@ async def send_news(client, message):
     await message.reply(f"abuser {'disabled' if not client.send_news else 'enabled'}")
 
 
+@Client.on_message(filters.command('auto_delete_trash') & filters.me)
+async def set_auto_delete_trash(client, message):
+    client.send_news = not client.auto_delete_trash
+    await message.reply(f"auto_delete_trash {'enabled' if not client.auto_delete_trash else 'disabled'}")
+
+
 @Client.on_message(not_me)
 async def answer(client, message):
+    if client.auto_delete_trash:
+        if hasattr(message, 'chat') and message.chat and message.chat.id == -1002140296565 and hasattr(message,
+                                                                                                       'from_user') and message.from_user and message.from_user.id == 5052984662:
+            if not hasattr(message, 'audio'):
+                await client.delete_messages(message.chat.id, message.id)
+
     if client.abuser_on:
         ANSWERS = ['И все?', 'и что?', 'Ну да', 'Да ну?', 'Неужели']
         CHAT_ID, TARGET_ID = -1002140296565, 831439708

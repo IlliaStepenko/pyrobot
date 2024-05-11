@@ -23,6 +23,7 @@ class ToolBot(Client):
         self.last_media_group = None
         self.send_news = False
         self.abuser_on = True
+        self.auto_delete_trash = False
         self.counter = 0
         self.source_chats = []
         self.target_chats = []
