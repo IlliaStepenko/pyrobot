@@ -171,7 +171,6 @@ async def on_new_post(client, message):
 
 @Client.on_message(filters.channel & filters.create(filter_channel_2))
 async def on_new_post_two(client, message):
-    client.send_photo(-1001140635421, photo='', caption='')
 
     message_text = ''
     if hasattr(message, 'sender_chat'):
@@ -187,7 +186,7 @@ async def on_new_post_two(client, message):
         message_text += message.caption
     try:
         await client.send_photo(-1001140635421,
-                                photo='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS9TbgLids2rvSrU2TglRGDxVNP3xZFIuRV-E9ZG0FvuQDRkMjk',
+                                photo='https://i.lb.ua/026/18/6524fed9a795c.png',
                                 caption=message_text)
     except Exception as e:
         await client.send_message(-1001140635421, text=message_text)
